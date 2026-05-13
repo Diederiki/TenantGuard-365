@@ -253,8 +253,13 @@ def login_local(
         _audit_failed_login(db, request, email, "wrong_auth_method", user.id)
         raise HTTPException(status_code=400, detail="wrong_auth_method")
 
-    totp_row = db.scalar(select(PlatformUserTotp).where(PlatformUserTotp.user_id == user.id))
-    totp_required = (totp_row is not None and totp_row.confirmed_at is not None) or user.must_complete_totp
+    totp_row = db.scalar(
+        select(PlatformUserTotp).where(PlatformUserTotp.user_id == user.id)
+    )
+    totp_required = (
+        (totp_row is not None and totp_row.confirmed_at is not None)
+        or user.must_complete_totp
+    )
 
     if totp_required:
         if not body.code:

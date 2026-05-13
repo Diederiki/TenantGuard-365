@@ -86,7 +86,9 @@ def install_rate_limit(app) -> None:  # type: ignore[no-untyped-def]
             window_key = int(time.time()) // window
             key = f"tg365:rl:{actor}:{route_class}:{window_key}"
         else:
-            route_class = "write" if request.method in {"POST", "PUT", "PATCH", "DELETE"} else "read"
+            route_class = (
+                "write" if request.method in {"POST", "PUT", "PATCH", "DELETE"} else "read"
+            )
             limit = _DEFAULT_WRITE_LIMIT if route_class == "write" else _DEFAULT_READ_LIMIT
             window = _WINDOW_SECONDS
             key = _bucket_key(actor, route_class)

@@ -102,7 +102,11 @@ def build_token_provider(db: Session) -> Callable[[str], Awaitable[str]]:
         tg_row = db.scalar(
             select(TenantGraphSettings).where(TenantGraphSettings.tenant_id == tid_uuid)
         )
-        if tg_row is not None and tg_row.collector_client_id and tg_row.collector_client_secret_encrypted:
+        if (
+            tg_row is not None
+            and tg_row.collector_client_id
+            and tg_row.collector_client_secret_encrypted
+        ):
             client_id = tg_row.collector_client_id
             try:
                 client_secret = unwrap_app_secret(tg_row.collector_client_secret_encrypted)
