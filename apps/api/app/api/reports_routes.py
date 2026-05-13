@@ -2,11 +2,10 @@
 
 from __future__ import annotations
 
-import io
 import uuid
 from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Response
+from fastapi import APIRouter, Depends, HTTPException, Response
 from pydantic import BaseModel, ConfigDict
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -14,7 +13,7 @@ from sqlalchemy.orm import Session
 from app.audit.logger import AuditContext, AuditLogger
 from app.auth import permissions as P
 from app.auth.dependencies import AuthedUser, require
-from app.db.models import ReportExport, ReportRun, SavedReport
+from app.db.models import ReportRun, SavedReport
 from app.db.session import db_session
 from app.reports import get_report, record_export, run_report
 from app.reports.export import export as serialise
@@ -157,8 +156,3 @@ def download_run(
         media_type=content_type,
         headers={"Content-Disposition": f'attachment; filename="{filename}"'},
     )
-
-
-_ = io  # silence unused
-_ = Query
-_ = ReportExport
