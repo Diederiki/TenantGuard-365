@@ -123,3 +123,7 @@ register(
         evaluator=_rule_guest_admin,
     )
 )
+
+
+# Side-effect import — registers additional rules.
+from app.security import extra_rules as _extra_rules  # noqa: E402,F401

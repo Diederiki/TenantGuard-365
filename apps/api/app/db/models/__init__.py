@@ -12,6 +12,7 @@ from app.db.models.m365 import (
     SharePointSharingLink,
     SharePointSite,
 )
+from app.db.models.notifications import NotificationChannel, NotificationEvent
 from app.db.models.platform import (
     PlatformPermission,
     PlatformRole,
@@ -60,6 +61,8 @@ __all__ = [
     "M365Group",
     "M365License",
     "M365User",
+    "NotificationChannel",
+    "NotificationEvent",
     "PlatformPermission",
     "PlatformRole",
     "PlatformRoleAssignment",

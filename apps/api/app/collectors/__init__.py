@@ -140,6 +140,8 @@ async def run_collector(
 
 # Import side-effecting modules so they register on package import.
 from app.collectors import (  # noqa: E402,F401
+    entra_groups,
+    entra_licenses,
     entra_users,
     service_health,
     sharepoint_sites,
