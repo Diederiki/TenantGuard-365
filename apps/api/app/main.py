@@ -11,6 +11,9 @@ from fastapi import FastAPI, Request, Response
 from starlette.middleware.cors import CORSMiddleware
 
 from app import __version__
+from app.api.audit_routes import router as audit_router
+from app.api.auth_routes import router as auth_router
+from app.api.me_routes import router as me_router
 from app.config import get_settings
 from app.health import router as health_router
 from app.logging_setup import configure_logging
@@ -77,6 +80,9 @@ def create_app() -> FastAPI:
         return response
 
     app.include_router(health_router)
+    app.include_router(auth_router)
+    app.include_router(me_router)
+    app.include_router(audit_router)
 
     @app.get("/", tags=["meta"], summary="API root")
     def root() -> dict[str, str]:
