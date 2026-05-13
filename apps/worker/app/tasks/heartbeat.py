@@ -21,7 +21,7 @@ logger = logging.getLogger("tg365.worker.heartbeat")
 def heartbeat() -> None:
     settings = get_settings()
     now = datetime.now(UTC).isoformat()
-    client = redis.from_url(str(settings.redis_url))
+    client = redis.from_url(settings.redis_url)
     try:
         client.set("tg365:heartbeat:last_at", now, ex=300)
     finally:

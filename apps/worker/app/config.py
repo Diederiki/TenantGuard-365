@@ -5,7 +5,6 @@ from __future__ import annotations
 from functools import lru_cache
 from typing import Literal
 
-from pydantic import Field, RedisDsn
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 Environment = Literal["development", "staging", "production"]
@@ -18,7 +17,7 @@ class WorkerSettings(BaseSettings):
     log_level: str = "info"
     log_format: str = "json"
 
-    redis_url: RedisDsn = Field(default="redis://redis:6379/0")
+    redis_url: str = "redis://redis:6379/0"
     role: str = "all"  # all | worker | beat
     heartbeat_interval_seconds: int = 30
 

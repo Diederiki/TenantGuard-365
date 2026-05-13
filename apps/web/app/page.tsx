@@ -4,8 +4,8 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+} from "../components/ui/card";
+import { Badge } from "../components/ui/badge";
 
 async function fetchHealth(): Promise<{
   api: { ok: boolean; status: string; error?: string };

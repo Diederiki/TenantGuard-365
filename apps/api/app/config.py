@@ -77,7 +77,7 @@ class Settings(BaseSettings):
     minio_endpoint: str = "minio:9000"
     minio_region: str = "us-east-1"
     minio_root_user: str = "tg365admin"
-    minio_root_password: str = "change-me-minio"
+    minio_root_password: str = "change-me-minio"  # noqa: S105  dev default, overridden by env
     minio_bucket_exports: str = "tg365-exports"
     minio_bucket_evidence: str = "tg365-evidence"
     minio_use_ssl: bool = False

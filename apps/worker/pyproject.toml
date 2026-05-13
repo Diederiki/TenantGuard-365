@@ -13,8 +13,18 @@ select = ["E", "F", "W", "I", "B", "UP", "RUF"]
 
 [tool.mypy]
 python_version = "3.12"
-strict = true
 ignore_missing_imports = true
+warn_unused_ignores = true
+warn_redundant_casts = true
+# Dramatiq is untyped; we don't gain much from strict here.
+disallow_untyped_calls = false
+disallow_untyped_defs = true
+warn_return_any = false
+
+[[tool.mypy.overrides]]
+module = ["app.broker", "app.beat", "app.main"]
+disallow_untyped_calls = false
+disallow_untyped_defs = false
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"

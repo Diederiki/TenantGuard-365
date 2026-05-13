@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy import BigInteger, DateTime, Index, LargeBinary, String, Text
 from sqlalchemy.dialects.postgresql import ARRAY, INET, JSONB, UUID
@@ -13,7 +13,7 @@ from app.db.base import Base
 
 
 def _utcnow() -> datetime:
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 class TechnicianAuditLog(Base):
