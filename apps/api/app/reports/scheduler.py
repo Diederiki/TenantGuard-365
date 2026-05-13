@@ -3,11 +3,18 @@
 Walks ``scheduled_reports`` rows that are due, runs the report, exports it
 to all configured formats, and emails the results to ``email_to``. Idempotent
 on ``next_run_at`` so concurrent workers can race safely.
+
+Cron support:
+- ``@hourly`` / ``@daily`` / ``@weekly`` / ``@monthly``
+- 5-field cron (m h dom mon dow) via croniter when available
+- integer-minutes shorthand (``"15"`` → every 15 min)
+- fallback: +1 hour
 """
 
 from __future__ import annotations
 
 import asyncio
+import calendar
 import logging
 from datetime import UTC, datetime, timedelta
 
@@ -23,15 +30,6 @@ logger = logging.getLogger("tg365.reports.scheduler")
 
 
 def _bump_next_run(cron: str, *, after: datetime) -> datetime:
-    """Naive cron bump: every-N-minutes / hourly / daily / weekly.
-
-    Full croniter parsing is out of scope. We support common shapes:
-    - ``@hourly`` → +1 hour
-    - ``@daily``  → +24 hours
-    - ``@weekly`` → +7 days
-    - ``N`` (integer minutes) → +N minutes
-    - anything else → +1 hour fallback
-    """
     cron = cron.strip().lower()
     if cron == "@hourly":
         return after + timedelta(hours=1)
@@ -39,8 +37,19 @@ def _bump_next_run(cron: str, *, after: datetime) -> datetime:
         return after + timedelta(days=1)
     if cron == "@weekly":
         return after + timedelta(days=7)
+    if cron == "@monthly":
+        days = calendar.monthrange(after.year, after.month)[1]
+        return after + timedelta(days=days)
     if cron.isdigit():
         return after + timedelta(minutes=int(cron))
+    # Full 5-field cron via croniter if installed.
+    if " " in cron:
+        try:
+            from croniter import croniter
+
+            return croniter(cron, after).get_next(datetime)  # type: ignore[no-any-return]
+        except Exception:
+            logger.warning("scheduler.cron.parse_fallback", extra={"cron": cron})
     return after + timedelta(hours=1)
 
 
@@ -61,12 +70,11 @@ def run_due_scheduled_reports(db: Session) -> dict[str, int]:
             _execute(db, sched)
             counts["ran"] += 1
             counts["emails_sent"] += len(sched.email_to)
-        except Exception as exc:  # one bad schedule shouldn't kill the loop
+        except Exception:
             counts["errors"] += 1
             logger.exception("scheduler.run.failed", extra={"sched": str(sched.id)})
             sched.next_run_at = _bump_next_run(sched.cron, after=now)
             db.flush()
-            _ = exc
     db.commit()
     return counts
 
@@ -83,17 +91,14 @@ def _execute(db: Session, sched: ScheduledReport) -> None:
         logger.warning("scheduler.unknown_source", extra={"source": saved.source})
         return
     run, _rows = run_report(db=db, saved=saved, triggered_by=None)
-    # Re-execute once for export bytes; the run row is metadata only.
     stmt = definition.builder(saved.tenant_id, saved.filters)
     rows = [dict(r._mapping) for r in db.execute(stmt).all()]
 
-    bodies: dict[str, bytes] = {}
     for fmt in sched.formats:
         body, _content_type = serialise(
             fmt, title=saved.display_name, columns=definition.columns, rows=rows
         )
         record_export(db=db, run=run, fmt=fmt, body=body)
-        bodies[fmt] = body
 
     if sched.email_to:
         notif = NotificationBody(

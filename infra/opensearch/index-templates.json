@@ -1,0 +1,36 @@
+{
+  "templates": [
+    {
+      "name": "tg365-events",
+      "index_patterns": ["tg365-*-events-*", "tg365-entra-*-*", "tg365-sharepoint-activity-*", "tg365-exchange-activity-*", "tg365-teams-activity-*", "tg365-onedrive-activity-*"],
+      "template": {
+        "settings": {
+          "number_of_shards": 1,
+          "number_of_replicas": 0,
+          "index.lifecycle.name": "tg365-events-13mo"
+        },
+        "mappings": {
+          "properties": {
+            "tenant_id": { "type": "keyword" },
+            "event_time": { "type": "date" },
+            "actor": { "type": "keyword" },
+            "operation": { "type": "keyword" },
+            "ip": { "type": "ip" },
+            "payload": { "type": "object", "enabled": false }
+          }
+        }
+      }
+    }
+  ],
+  "ilm_policies": [
+    {
+      "name": "tg365-events-13mo",
+      "policy": {
+        "phases": {
+          "hot": { "actions": { "rollover": { "max_age": "30d" } } },
+          "delete": { "min_age": "395d", "actions": { "delete": {} } }
+        }
+      }
+    }
+  ]
+}

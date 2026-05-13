@@ -35,3 +35,6 @@ itsdangerous==2.2.0
 
 # Email
 aiosmtplib==4.0.0
+
+# Scheduling
+croniter==6.0.0
