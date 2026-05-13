@@ -38,4 +38,4 @@ def exponential_backoff(
 ) -> float:
     """Compute the next backoff sleep with ±jitter."""
     raw = min(cap, base * (2 ** max(0, attempt)))
-    return raw * (1 + random.uniform(-jitter, jitter))  # noqa: S311  not crypto
+    return float(raw * (1 + random.uniform(-jitter, jitter)))  # noqa: S311  not crypto
