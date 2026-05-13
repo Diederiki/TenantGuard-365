@@ -13,8 +13,10 @@ from starlette.middleware.cors import CORSMiddleware
 from app import __version__
 from app.api.audit_routes import router as audit_router
 from app.api.auth_routes import router as auth_router
+from app.api.investigations_routes import router as investigations_router
 from app.api.me_routes import router as me_router
 from app.api.modules_routes import router as modules_router
+from app.api.rbac_routes import router as rbac_router
 from app.api.reports_routes import router as reports_router
 from app.api.security_routes import router as security_router
 from app.api.tenants_routes import router as tenants_router
@@ -91,6 +93,8 @@ def create_app() -> FastAPI:
     app.include_router(reports_router)
     app.include_router(security_router)
     app.include_router(tenants_router)
+    app.include_router(investigations_router)
+    app.include_router(rbac_router)
 
     @app.get("/", tags=["meta"], summary="API root")
     def root() -> dict[str, str]:

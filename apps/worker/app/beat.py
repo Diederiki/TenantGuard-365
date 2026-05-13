@@ -10,6 +10,7 @@ from apscheduler.triggers.interval import IntervalTrigger
 from app.broker import broker  # noqa: F401
 from app.config import get_settings
 from app.tasks.heartbeat import heartbeat
+from app.tasks.security import evaluate_security_rules
 
 logger = logging.getLogger("tg365.worker.beat")
 
@@ -25,5 +26,16 @@ def run_beat() -> None:
         coalesce=True,
         max_instances=1,
     )
-    logger.info("beat.starting", extra={"interval_s": settings.heartbeat_interval_seconds})
+    scheduler.add_job(
+        evaluate_security_rules.send,
+        trigger=IntervalTrigger(minutes=15),
+        id="security.eval",
+        replace_existing=True,
+        coalesce=True,
+        max_instances=1,
+    )
+    logger.info(
+        "beat.starting",
+        extra={"interval_s": settings.heartbeat_interval_seconds},
+    )
     scheduler.start()
