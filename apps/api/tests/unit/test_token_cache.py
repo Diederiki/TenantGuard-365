@@ -5,6 +5,7 @@ from __future__ import annotations
 import time
 
 import pytest
+from cryptography.exceptions import InvalidTag
 
 from app.graph.token_cache import (
     GraphTokenEnvelope,
@@ -35,7 +36,7 @@ def test_round_trip() -> None:
 
 def test_swapped_tenant_fails() -> None:
     blob = encrypt(_env(), associated_data_for_tenant("tenant-a"))
-    with pytest.raises(Exception):
+    with pytest.raises(InvalidTag):
         decrypt(blob, associated_data_for_tenant("tenant-b"))
 
 
