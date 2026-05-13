@@ -38,3 +38,7 @@ aiosmtplib==4.0.0
 
 # Scheduling
 croniter==6.0.0
+
+# Auth helpers
+pyotp==2.9.0
+qrcode==8.0

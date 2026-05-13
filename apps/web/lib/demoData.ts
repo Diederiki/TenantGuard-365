@@ -480,6 +480,65 @@ export const DEMO_RBAC_USERS = [
   },
 ];
 
+export const DEMO_TENANT_ID = "11111111-1111-1111-1111-111111111111";
+
+export const DEMO_GRAPH_SETTINGS = {
+  tenant_id: DEMO_TENANT_ID,
+  entra_tenant_id: "00000000-aaaa-bbbb-cccc-000000000000",
+  portal_client_id: "11111111-2222-3333-4444-555555555555",
+  collector_client_id: "66666666-7777-8888-9999-000000000000",
+  portal_secret_present: true,
+  collector_secret_present: true,
+  feature_2fa_required: true,
+  allow_local_password: false,
+};
+
+export const DEMO_ONEDRIVE = [
+  { user: "alice@dev.local", used_gb: 12.4, quota_gb: 1024, last_active_at: "2026-05-13T08:00:00Z" },
+  { user: "bob@dev.local", used_gb: 240.1, quota_gb: 1024, last_active_at: "2026-05-12T16:00:00Z" },
+  { user: "carol@dev.local", used_gb: 0.6, quota_gb: 1024, last_active_at: "2026-04-01T09:00:00Z" },
+];
+
+export const DEMO_EXCHANGE = [
+  { upn: "ceo@dev.local", mailbox_type: "user", forwarding_external: true, inbox_rules: 3 },
+  { upn: "shared.invoices@dev.local", mailbox_type: "shared", forwarding_external: false, inbox_rules: 1 },
+  { upn: "support@dev.local", mailbox_type: "shared", forwarding_external: false, inbox_rules: 5 },
+];
+
+export const DEMO_TEAMS: {
+  name: string;
+  visibility: string;
+  members: number;
+  guests: number;
+  channels: number;
+}[] = [
+  { name: "All Company", visibility: "Public", members: 124, guests: 0, channels: 8 },
+  { name: "Finance — Q2 close", visibility: "Private", members: 12, guests: 0, channels: 4 },
+  { name: "External-Project-X", visibility: "Private", members: 9, guests: 3, channels: 6 },
+];
+
+export const DEMO_CONTENT_SEARCH_PATTERNS = [
+  { key: "email_address", display_name: "Email address", severity: "info" },
+  { key: "iban_eu", display_name: "EU IBAN", severity: "trouble" },
+  { key: "visa_card", display_name: "Visa card number", severity: "critical" },
+  { key: "us_ssn", display_name: "US Social Security Number", severity: "critical" },
+  { key: "aws_access_key", display_name: "AWS access key", severity: "critical" },
+];
+
+export const DEMO_SCHEDULED_REPORTS: {
+  id: string;
+  report: string;
+  cron: string;
+  formats: string[];
+  email_to: string[];
+  enabled: boolean;
+  next_run_at: string;
+  last_run_at: string;
+}[] = [
+  { id: "sch-1", report: "SharePoint — anonymous sharing links", cron: "@daily", formats: ["csv", "xlsx"], email_to: ["secops@dev.local"], enabled: true, next_run_at: "2026-05-14T00:00:00Z", last_run_at: "2026-05-13T00:00:00Z" },
+  { id: "sch-2", report: "Entra users — guests", cron: "@weekly", formats: ["html", "pdf"], email_to: ["compliance@dev.local"], enabled: true, next_run_at: "2026-05-19T00:00:00Z", last_run_at: "2026-05-12T00:00:00Z" },
+];
+
 export function isDemoCookie(cookieHeader: string): boolean {
   return /(?:^|; )tg365_demo=1\b/.test(cookieHeader);
 }

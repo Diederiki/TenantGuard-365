@@ -46,6 +46,8 @@ from app.db.models.sync import (
     GraphTokenCacheRow,
 )
 from app.db.models.tenant import Tenant, TenantConnection
+from app.db.models.tenant_settings import TenantGraphSettings
+from app.db.models.totp import PlatformUserTotp
 
 __all__ = [
     "AppRegistration",
@@ -68,6 +70,7 @@ __all__ = [
     "PlatformRoleAssignment",
     "PlatformRolePermission",
     "PlatformUser",
+    "PlatformUserTotp",
     "RemediationAction",
     "RemediationApproval",
     "RemediationPolicy",
@@ -85,4 +88,5 @@ __all__ = [
     "TechnicianAuditLog",
     "Tenant",
     "TenantConnection",
+    "TenantGraphSettings",
 ]

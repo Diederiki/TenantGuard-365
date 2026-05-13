@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import uuid
 
-from sqlalchemy import Boolean, ForeignKey, String, Text, UniqueConstraint
+from sqlalchemy import Boolean, ForeignKey, LargeBinary, String, Text, UniqueConstraint
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -19,6 +19,11 @@ class PlatformUser(UUIDPKMixin, TimestampMixin, Base):
     entra_object_id: Mapped[str | None] = mapped_column(String(64), unique=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     is_system: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    password_hash: Mapped[bytes | None] = mapped_column(LargeBinary)
+    must_complete_totp: Mapped[bool] = mapped_column(
+        Boolean, default=False, nullable=False
+    )
+    auth_method: Mapped[str] = mapped_column(String(16), default="entra", nullable=False)
 
     assignments: Mapped[list[PlatformRoleAssignment]] = relationship(
         back_populates="user", cascade="all, delete-orphan"
