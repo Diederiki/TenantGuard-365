@@ -59,7 +59,9 @@ class PlatformRolePermission(UUIDPKMixin, TimestampMixin, Base):
         UUID(as_uuid=True), ForeignKey("platform_roles.id", ondelete="CASCADE"), nullable=False
     )
     permission_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("platform_permissions.id", ondelete="CASCADE"), nullable=False
+        UUID(as_uuid=True),
+        ForeignKey("platform_permissions.id", ondelete="CASCADE"),
+        nullable=False,
     )
 
     role: Mapped[PlatformRole] = relationship(back_populates="role_permissions")

@@ -185,7 +185,10 @@ def seed() -> None:
                     scope="",
                 )
             )
-            logger.info("seed.assignment.created", extra={"user": admin.email, "role": "platform_admin"})
+            logger.info(
+                "seed.assignment.created",
+                extra={"user": admin.email, "role": "platform_admin"},
+            )
 
         try:
             s.commit()

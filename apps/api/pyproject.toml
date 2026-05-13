@@ -26,7 +26,7 @@ ignore = [
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/**/*.py" = ["S", "E501"]
+"tests/**/*.py" = ["S", "E501", "I001"]
 "alembic/**/*.py" = ["E501", "I001"]
 
 [tool.ruff.format]

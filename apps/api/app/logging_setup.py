@@ -36,7 +36,7 @@ def _scrub(value: Any) -> Any:
             k: ("[REDACTED]" if k.lower() in SENSITIVE_KEYS else _scrub(v))
             for k, v in value.items()
         }
-    if isinstance(value, (list, tuple)):
+    if isinstance(value, list | tuple):
         return type(value)(_scrub(v) for v in value)
     return value
 
