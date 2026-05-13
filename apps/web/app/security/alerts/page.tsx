@@ -11,6 +11,7 @@ import {
   CardTitle,
 } from "../../../components/ui/card";
 import { apiBaseUrl, fetchMe } from "../../../lib/api";
+import { DEMO_ALERTS, isDemoCookie } from "../../../lib/demoData";
 
 export const dynamic = "force-dynamic";
 
@@ -45,14 +46,18 @@ export default async function AlertsPage() {
 
   const base = apiBaseUrl({ serverSide: true });
   let alerts: Alert[] | { error: string };
-  try {
-    const r = await fetch(`${base}/api/security/alerts?limit=100`, {
-      headers: { cookie },
-      cache: "no-store",
-    });
-    alerts = r.ok ? ((await r.json()) as Alert[]) : { error: `${r.status}` };
-  } catch (e) {
-    alerts = { error: String(e) };
+  if (isDemoCookie(cookie)) {
+    alerts = DEMO_ALERTS as Alert[];
+  } else {
+    try {
+      const r = await fetch(`${base}/api/security/alerts?limit=100`, {
+        headers: { cookie },
+        cache: "no-store",
+      });
+      alerts = r.ok ? ((await r.json()) as Alert[]) : { error: `${r.status}` };
+    } catch (e) {
+      alerts = { error: String(e) };
+    }
   }
 
   return (

@@ -11,6 +11,7 @@ import {
   CardTitle,
 } from "../../../components/ui/card";
 import { apiBaseUrl, fetchMe } from "../../../lib/api";
+import { DEMO_INVESTIGATIONS, isDemoCookie } from "../../../lib/demoData";
 
 export const dynamic = "force-dynamic";
 
@@ -46,14 +47,18 @@ export default async function InvestigationsPage() {
 
   const base = apiBaseUrl({ serverSide: true });
   let cases: Case[] | { error: string };
-  try {
-    const r = await fetch(`${base}/api/investigations`, {
-      headers: { cookie },
-      cache: "no-store",
-    });
-    cases = r.ok ? ((await r.json()) as Case[]) : { error: `${r.status}` };
-  } catch (e) {
-    cases = { error: String(e) };
+  if (isDemoCookie(cookie)) {
+    cases = DEMO_INVESTIGATIONS as Case[];
+  } else {
+    try {
+      const r = await fetch(`${base}/api/investigations`, {
+        headers: { cookie },
+        cache: "no-store",
+      });
+      cases = r.ok ? ((await r.json()) as Case[]) : { error: `${r.status}` };
+    } catch (e) {
+      cases = { error: String(e) };
+    }
   }
 
   return (

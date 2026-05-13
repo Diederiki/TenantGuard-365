@@ -11,6 +11,7 @@ import {
   CardTitle,
 } from "../../components/ui/card";
 import { apiBaseUrl, fetchMe } from "../../lib/api";
+import { DEMO_RBAC_ROLES, DEMO_RBAC_USERS, isDemoCookie } from "../../lib/demoData";
 
 export const dynamic = "force-dynamic";
 
@@ -47,10 +48,12 @@ export default async function DelegationPage() {
     }
   }
 
-  const [roles, users] = await Promise.all([
-    safe<Role[]>("/api/rbac/roles"),
-    safe<User[]>("/api/rbac/users"),
-  ]);
+  const [roles, users] = isDemoCookie(cookie)
+    ? [DEMO_RBAC_ROLES as Role[], DEMO_RBAC_USERS as User[]]
+    : await Promise.all([
+        safe<Role[]>("/api/rbac/roles"),
+        safe<User[]>("/api/rbac/users"),
+      ]);
 
   return (
     <AppShell me={me} currentPath="/delegation">

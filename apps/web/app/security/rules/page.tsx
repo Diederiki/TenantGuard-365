@@ -11,6 +11,7 @@ import {
   CardTitle,
 } from "../../../components/ui/card";
 import { apiBaseUrl, fetchMe } from "../../../lib/api";
+import { DEMO_RULES, isDemoCookie } from "../../../lib/demoData";
 
 export const dynamic = "force-dynamic";
 
@@ -36,14 +37,18 @@ export default async function SecurityRulesPage() {
 
   const base = apiBaseUrl({ serverSide: true });
   let rules: Rule[] | { error: string };
-  try {
-    const r = await fetch(`${base}/api/security/rules`, {
-      headers: { cookie },
-      cache: "no-store",
-    });
-    rules = r.ok ? ((await r.json()) as Rule[]) : { error: `${r.status}` };
-  } catch (e) {
-    rules = { error: String(e) };
+  if (isDemoCookie(cookie)) {
+    rules = DEMO_RULES as Rule[];
+  } else {
+    try {
+      const r = await fetch(`${base}/api/security/rules`, {
+        headers: { cookie },
+        cache: "no-store",
+      });
+      rules = r.ok ? ((await r.json()) as Rule[]) : { error: `${r.status}` };
+    } catch (e) {
+      rules = { error: String(e) };
+    }
   }
 
   return (

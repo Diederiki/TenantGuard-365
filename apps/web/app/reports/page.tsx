@@ -11,6 +11,7 @@ import {
   CardTitle,
 } from "../../components/ui/card";
 import { apiBaseUrl, fetchMe } from "../../lib/api";
+import { DEMO_REPORT_DEFS, isDemoCookie } from "../../lib/demoData";
 
 export const dynamic = "force-dynamic";
 
@@ -23,6 +24,7 @@ type ReportDef = {
 };
 
 async function fetchReports(cookie: string): Promise<ReportDef[] | { error: string }> {
+  if (isDemoCookie(cookie)) return DEMO_REPORT_DEFS;
   const base = apiBaseUrl({ serverSide: true });
   try {
     const r = await fetch(`${base}/api/reports/definitions`, {

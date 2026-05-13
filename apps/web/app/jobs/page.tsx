@@ -11,6 +11,7 @@ import {
   CardTitle,
 } from "../../components/ui/card";
 import { apiBaseUrl, fetchMe } from "../../lib/api";
+import { DEMO_COLLECTORS, isDemoCookie } from "../../lib/demoData";
 
 export const dynamic = "force-dynamic";
 
@@ -30,14 +31,18 @@ export default async function JobsPage() {
 
   const base = apiBaseUrl({ serverSide: true });
   let collectors: Collector[] | { error: string };
-  try {
-    const r = await fetch(`${base}/api/collectors`, {
-      headers: { cookie },
-      cache: "no-store",
-    });
-    collectors = r.ok ? ((await r.json()) as Collector[]) : { error: `${r.status}` };
-  } catch (e) {
-    collectors = { error: String(e) };
+  if (isDemoCookie(cookie)) {
+    collectors = DEMO_COLLECTORS;
+  } else {
+    try {
+      const r = await fetch(`${base}/api/collectors`, {
+        headers: { cookie },
+        cache: "no-store",
+      });
+      collectors = r.ok ? ((await r.json()) as Collector[]) : { error: `${r.status}` };
+    } catch (e) {
+      collectors = { error: String(e) };
+    }
   }
 
   return (

@@ -11,6 +11,7 @@ import {
   CardTitle,
 } from "../../components/ui/card";
 import { apiBaseUrl, fetchMe } from "../../lib/api";
+import { DEMO_REMEDIATION_POLICIES, isDemoCookie } from "../../lib/demoData";
 
 export const dynamic = "force-dynamic";
 
@@ -34,14 +35,18 @@ export default async function RemediationPage() {
 
   const base = apiBaseUrl({ serverSide: true });
   let policies: Policy[] | { error: string };
-  try {
-    const r = await fetch(`${base}/api/remediation/policies`, {
-      headers: { cookie },
-      cache: "no-store",
-    });
-    policies = r.ok ? ((await r.json()) as Policy[]) : { error: `${r.status}` };
-  } catch (e) {
-    policies = { error: String(e) };
+  if (isDemoCookie(cookie)) {
+    policies = DEMO_REMEDIATION_POLICIES;
+  } else {
+    try {
+      const r = await fetch(`${base}/api/remediation/policies`, {
+        headers: { cookie },
+        cache: "no-store",
+      });
+      policies = r.ok ? ((await r.json()) as Policy[]) : { error: `${r.status}` };
+    } catch (e) {
+      policies = { error: String(e) };
+    }
   }
 
   return (

@@ -24,8 +24,8 @@ export function SignInForm() {
         return;
       }
       window.location.href = "/";
-    } catch (e) {
-      setError(String(e));
+    } catch (err) {
+      setError(String(err));
       setBusy(false);
     }
   }
@@ -35,8 +35,33 @@ export function SignInForm() {
     window.location.href = `${base}/auth/login/entra?redirect_to=/`;
   }
 
+  function signInDemo() {
+    document.cookie = "tg365_demo=1; path=/; max-age=86400; samesite=lax";
+    window.location.href = "/";
+  }
+
   return (
     <div className="space-y-6">
+      <button
+        type="button"
+        onClick={signInDemo}
+        className="w-full rounded-md bg-emerald-600 px-4 py-2.5 text-sm font-medium text-white shadow-lg shadow-emerald-900/30 hover:bg-emerald-500"
+      >
+        Enter demo mode (no backend required)
+      </button>
+      <p className="-mt-3 text-center text-xs text-slate-500">
+        Click through the full UI with seeded data. No API calls.
+      </p>
+
+      <div className="relative">
+        <div className="absolute inset-0 flex items-center">
+          <div className="w-full border-t border-slate-800" />
+        </div>
+        <div className="relative flex justify-center text-xs">
+          <span className="bg-slate-900/60 px-2 text-slate-500">or sign in for real</span>
+        </div>
+      </div>
+
       <form onSubmit={signInMock} className="space-y-3">
         <label className="block text-sm text-slate-300">
           Mock user email
@@ -54,18 +79,9 @@ export function SignInForm() {
           disabled={busy}
           className="w-full rounded-md bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-500 disabled:opacity-50"
         >
-          {busy ? "Signing in…" : "Sign in (mock)"}
+          {busy ? "Signing in…" : "Sign in (mock — needs API running)"}
         </button>
       </form>
-
-      <div className="relative">
-        <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-slate-800" />
-        </div>
-        <div className="relative flex justify-center text-xs">
-          <span className="bg-slate-900/60 px-2 text-slate-500">or</span>
-        </div>
-      </div>
 
       <button
         type="button"
