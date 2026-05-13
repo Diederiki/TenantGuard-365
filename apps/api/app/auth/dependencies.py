@@ -28,7 +28,9 @@ class AuthedUser:
     session: SessionData
 
 
-def _resolve_permissions(session: Session, user_id: uuid.UUID) -> tuple[list[uuid.UUID], frozenset[str]]:
+def _resolve_permissions(
+    session: Session, user_id: uuid.UUID
+) -> tuple[list[uuid.UUID], frozenset[str]]:
     role_ids = list(
         session.scalars(
             select(PlatformRoleAssignment.role_id).where(
@@ -57,7 +59,9 @@ def current_user(
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="no_session")
     sid = store.unsign_sid(signed)
     if sid is None:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="bad_session_signature")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="bad_session_signature"
+        )
     data = store.get(sid)
     if data is None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="session_expired")

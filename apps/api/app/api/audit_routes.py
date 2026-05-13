@@ -20,7 +20,10 @@ def list_audit(
     authed: AuthedUser = Depends(require(P.AUDIT_READ)),
     db: Session = Depends(db_session),
     limit: int = Query(default=50, ge=1, le=500),
-    before_id: int | None = Query(default=None, description="opaque cursor; pass prior page's next_cursor"),
+    before_id: int | None = Query(
+        default=None,
+        description="opaque cursor; pass prior page's next_cursor",
+    ),
     action: str | None = Query(default=None),
 ) -> AuditPage:
     del authed  # used by the dependency only; reference to silence unused-arg lint
