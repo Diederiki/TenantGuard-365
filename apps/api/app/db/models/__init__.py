@@ -1,4 +1,4 @@
-"""SQLAlchemy ORM models. Import them all here so Alembic autogenerate can see them."""
+"""SQLAlchemy ORM models. Importing them here ensures Alembic sees them."""
 
 from app.db.models.audit import TechnicianAuditLog
 from app.db.models.platform import (
@@ -11,12 +11,12 @@ from app.db.models.platform import (
 from app.db.models.tenant import Tenant, TenantConnection
 
 __all__ = [
+    "PlatformPermission",
+    "PlatformRole",
+    "PlatformRoleAssignment",
+    "PlatformRolePermission",
+    "PlatformUser",
+    "TechnicianAuditLog",
     "Tenant",
     "TenantConnection",
-    "PlatformUser",
-    "PlatformRole",
-    "PlatformPermission",
-    "PlatformRolePermission",
-    "PlatformRoleAssignment",
-    "TechnicianAuditLog",
 ]

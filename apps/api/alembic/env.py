@@ -8,17 +8,13 @@ from alembic import context
 from sqlalchemy import engine_from_config, pool
 
 from app.config import get_settings
+from app.db import models as _models  # noqa: F401  registers models on Base.metadata
 from app.db.base import Base
-from app.db.models import *  # noqa: F401,F403  (register models with metadata)
 
 config = context.config
 
-# Override the URL from app settings unless one is provided explicitly.
-if not config.get_main_option("sqlalchemy.url"):
-    config.set_main_option("sqlalchemy.url", str(get_settings().database_url))
-else:
-    # alembic.ini ships a default; replace it with the live setting at runtime.
-    config.set_main_option("sqlalchemy.url", str(get_settings().database_url))
+# Always source the URL from app settings.
+config.set_main_option("sqlalchemy.url", str(get_settings().database_url))
 
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)

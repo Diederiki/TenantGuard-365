@@ -4,7 +4,14 @@ from __future__ import annotations
 
 import dramatiq
 from dramatiq.brokers.redis import RedisBroker
-from dramatiq.middleware import AgeLimit, Callbacks, Pipelines, Retries, ShutdownNotifications, TimeLimit
+from dramatiq.middleware import (
+    AgeLimit,
+    Callbacks,
+    Pipelines,
+    Retries,
+    ShutdownNotifications,
+    TimeLimit,
+)
 
 from app.config import get_settings
 

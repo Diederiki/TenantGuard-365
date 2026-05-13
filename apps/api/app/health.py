@@ -29,7 +29,7 @@ async def _check_db() -> tuple[bool, str | None]:
         with get_engine().connect() as conn:
             conn.execute(text("SELECT 1"))
         return True, None
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         logger.warning("readyz.db.failed", extra={"error": str(exc)})
         return False, str(exc)
 
@@ -42,7 +42,7 @@ async def _check_redis() -> tuple[bool, str | None]:
         finally:
             await client.aclose()
         return True, None
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         logger.warning("readyz.redis.failed", extra={"error": str(exc)})
         return False, str(exc)
 
@@ -56,7 +56,7 @@ async def _check_opensearch() -> tuple[bool, str | None]:
             if status not in {"green", "yellow"}:
                 return False, f"cluster status={status}"
         return True, None
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         logger.warning("readyz.opensearch.failed", extra={"error": str(exc)})
         return False, str(exc)
 
@@ -70,7 +70,7 @@ async def _check_minio() -> tuple[bool, str | None]:
             r = await client.get(url)
             r.raise_for_status()
         return True, None
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         logger.warning("readyz.minio.failed", extra={"error": str(exc)})
         return False, str(exc)
 

@@ -6,7 +6,7 @@ Phase 4 replaces this with real collector tasks.
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import dramatiq
 import redis
@@ -20,7 +20,7 @@ logger = logging.getLogger("tg365.worker.heartbeat")
 @dramatiq.actor(queue_name="heartbeat", max_retries=3)
 def heartbeat() -> None:
     settings = get_settings()
-    now = datetime.now(timezone.utc).isoformat()
+    now = datetime.now(UTC).isoformat()
     client = redis.from_url(str(settings.redis_url))
     try:
         client.set("tg365:heartbeat:last_at", now, ex=300)
