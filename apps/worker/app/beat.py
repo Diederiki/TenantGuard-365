@@ -10,6 +10,7 @@ from apscheduler.triggers.interval import IntervalTrigger
 from app.broker import broker  # noqa: F401
 from app.config import get_settings
 from app.tasks.heartbeat import heartbeat
+from app.tasks.reports import run_due_scheduled_reports
 from app.tasks.security import evaluate_security_rules
 
 logger = logging.getLogger("tg365.worker.beat")
@@ -30,6 +31,14 @@ def run_beat() -> None:
         evaluate_security_rules.send,
         trigger=IntervalTrigger(minutes=15),
         id="security.eval",
+        replace_existing=True,
+        coalesce=True,
+        max_instances=1,
+    )
+    scheduler.add_job(
+        run_due_scheduled_reports.send,
+        trigger=IntervalTrigger(minutes=1),
+        id="reports.scheduler",
         replace_existing=True,
         coalesce=True,
         max_instances=1,
