@@ -58,11 +58,13 @@ class SessionStore:
     def __init__(self, settings: Settings | None = None) -> None:
         self._settings = settings or get_settings()
         self._signer = URLSafeSerializer(self._settings.dev_session_secret, salt="tg365-session")
-        self._redis = redis.from_url(self._settings.redis_url)
+        self._redis = redis.from_url(  # type: ignore[no-untyped-call]
+            self._settings.redis_url
+        )
 
     # --- cookie helpers ----------------------------------------------------
     def sign_sid(self, sid: str) -> str:
-        return self._signer.dumps(sid)  # type: ignore[no-any-return]
+        return self._signer.dumps(sid)
 
     def unsign_sid(self, signed: str) -> str | None:
         try:
