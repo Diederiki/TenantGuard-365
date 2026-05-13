@@ -23,7 +23,8 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.config import get_settings
-from app.db.models import GraphTokenCacheRow
+from app.db.models import GraphTokenCacheRow, TenantGraphSettings
+from app.db.models.tenant_settings import unwrap_app_secret
 from app.graph.token_cache import (
     GraphTokenEnvelope,
     associated_data_for_tenant,
@@ -92,14 +93,35 @@ def build_token_provider(db: Session) -> Callable[[str], Awaitable[str]]:
             except Exception as exc:
                 logger.warning("graph.token.cache_decrypt_failed", extra={"err": str(exc)})
 
-        # 2. Acquire via client credentials. Uses env settings for now.
-        client_id = settings.entra_client_id
-        client_secret = settings.entra_client_secret
-        entra_tenant_id = settings.entra_tenant_id or tenant_id
+        # 2. Acquire via client credentials.
+        # Prefer per-tenant DB settings (admin-managed). Fall back to env.
+        client_id: str | None = None
+        client_secret: str | None = None
+        entra_tenant_id: str | None = None
+
+        tg_row = db.scalar(
+            select(TenantGraphSettings).where(TenantGraphSettings.tenant_id == tid_uuid)
+        )
+        if tg_row is not None and tg_row.collector_client_id and tg_row.collector_client_secret_encrypted:
+            client_id = tg_row.collector_client_id
+            try:
+                client_secret = unwrap_app_secret(tg_row.collector_client_secret_encrypted)
+            except Exception as exc:
+                logger.warning("graph.token.unwrap_failed", extra={"err": str(exc)})
+                client_secret = None
+            entra_tenant_id = tg_row.entra_tenant_id
+
+        if not (client_id and client_secret):
+            client_id = settings.entra_client_id
+            client_secret = settings.entra_client_secret
+            entra_tenant_id = entra_tenant_id or settings.entra_tenant_id
+
+        entra_tenant_id = entra_tenant_id or tenant_id
+
         if not (client_id and client_secret):
             raise TenantNotConnectedError(
-                "no collector credential — configure ENTRA_CLIENT_ID/SECRET or run the "
-                "Phase 3 connection wizard for this tenant"
+                "no collector credential — configure via /api/settings/graph or "
+                "ENTRA_CLIENT_ID/SECRET env vars"
             )
         env = await _acquire_via_client_credentials(
             entra_tenant_id,

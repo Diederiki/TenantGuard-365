@@ -29,6 +29,24 @@ _WINDOW_SECONDS = 60
 # Routes excluded from rate limiting.
 _EXCLUDE_PREFIXES = ("/healthz", "/readyz", "/metrics", "/docs", "/openapi", "/favicon")
 
+# Tighter per-route limits to defeat brute force on auth endpoints.
+# (max_requests, window_seconds). Bucketed per actor, same as the default
+# limiter — but using a longer 5-minute window keeps the floor low.
+_STRICT_ROUTES: dict[str, tuple[int, int]] = {
+    "/auth/login/local": (10, 300),  # 10 attempts / 5 min
+    # TOTP verify on settings — admin enrolling. Looser than login but still
+    # tighter than 60/min to slow brute force during enrollment confirm.
+}
+
+
+def _matches_strict(path: str) -> tuple[int, int] | None:
+    if path in _STRICT_ROUTES:
+        return _STRICT_ROUTES[path]
+    # Suffix match for /api/settings/users/{id}/totp/verify
+    if path.startswith("/api/settings/users/") and path.endswith("/totp/verify"):
+        return (5, 60)  # 5 attempts / minute
+    return None
+
 
 def _bucket_key(actor: str, route_class: str) -> str:
     window = int(time.time()) // _WINDOW_SECONDS
@@ -60,14 +78,22 @@ def install_rate_limit(app) -> None:  # type: ignore[no-untyped-def]
         path = request.url.path
         if any(path.startswith(p) for p in _EXCLUDE_PREFIXES):
             return await call_next(request)
-        route_class = "write" if request.method in {"POST", "PUT", "PATCH", "DELETE"} else "read"
-        limit = _DEFAULT_WRITE_LIMIT if route_class == "write" else _DEFAULT_READ_LIMIT
         actor = _client_actor(request)
-        key = _bucket_key(actor, route_class)
+        strict = _matches_strict(path)
+        if strict is not None:
+            limit, window = strict
+            route_class = f"strict:{path}"
+            window_key = int(time.time()) // window
+            key = f"tg365:rl:{actor}:{route_class}:{window_key}"
+        else:
+            route_class = "write" if request.method in {"POST", "PUT", "PATCH", "DELETE"} else "read"
+            limit = _DEFAULT_WRITE_LIMIT if route_class == "write" else _DEFAULT_READ_LIMIT
+            window = _WINDOW_SECONDS
+            key = _bucket_key(actor, route_class)
         try:
             count = int(r.incr(key) or 0)
             if count == 1:
-                r.expire(key, _WINDOW_SECONDS)
+                r.expire(key, window)
         except Exception as exc:
             # Redis hiccup: fail-open with a warning. Better to serve than to deny.
             logger.warning("rate_limit.redis_unavailable", extra={"err": str(exc)})
@@ -81,7 +107,7 @@ def install_rate_limit(app) -> None:  # type: ignore[no-untyped-def]
                 status_code=status.HTTP_429_TOO_MANY_REQUESTS,
                 content='{"detail":"rate_limited"}',
                 media_type="application/json",
-                headers={"Retry-After": str(_WINDOW_SECONDS)},
+                headers={"Retry-After": str(window)},
             )
         response = await call_next(request)
         response.headers["X-RateLimit-Limit"] = str(limit)

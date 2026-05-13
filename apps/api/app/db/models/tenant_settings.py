@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import secrets as _secrets
 import uuid
 
 from sqlalchemy import Boolean, ForeignKey, LargeBinary, String
@@ -9,6 +10,21 @@ from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.base import Base, TimestampMixin, UUIDPKMixin
+from app.graph.token_cache import _aead
+
+_SECRET_AAD = b"tg365-app-secret"
+
+
+def wrap_app_secret(value: str) -> bytes:
+    """AES-GCM seal of an app-registration client secret."""
+    nonce = _secrets.token_bytes(12)
+    ct = _aead().encrypt(nonce, value.encode("utf-8"), _SECRET_AAD)
+    return nonce + ct
+
+
+def unwrap_app_secret(blob: bytes) -> str:
+    nonce, ct = blob[:12], blob[12:]
+    return _aead().decrypt(nonce, ct, _SECRET_AAD).decode("utf-8")
 
 
 class TenantGraphSettings(UUIDPKMixin, TimestampMixin, Base):

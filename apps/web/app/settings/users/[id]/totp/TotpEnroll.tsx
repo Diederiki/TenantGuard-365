@@ -2,11 +2,12 @@
 
 import { useEffect, useState } from "react";
 
-type EnrollResponse = { secret: string; otpauth_uri: string };
+type EnrollResponse = { secret: string; otpauth_uri: string; qr_svg_base64?: string };
 
 export function TotpEnroll({ userId, demo }: { userId: string; demo: boolean }) {
   const [secret, setSecret] = useState<string | null>(null);
   const [uri, setUri] = useState<string | null>(null);
+  const [qr, setQr] = useState<string | null>(null);
   const [code, setCode] = useState("");
   const [status, setStatus] = useState<"idle" | "enrolling" | "ready" | "verifying" | "ok" | "err">("idle");
   const [errMsg, setErrMsg] = useState<string | null>(null);
@@ -28,6 +29,7 @@ export function TotpEnroll({ userId, demo }: { userId: string; demo: boolean }) 
       };
       setSecret(fake.secret);
       setUri(fake.otpauth_uri);
+      setQr(null);
       setStatus("ready");
       return;
     }
@@ -50,6 +52,7 @@ export function TotpEnroll({ userId, demo }: { userId: string; demo: boolean }) 
       const body: EnrollResponse = await r.json();
       setSecret(body.secret);
       setUri(body.otpauth_uri);
+      setQr(body.qr_svg_base64 ?? null);
       setStatus("ready");
     } catch (err) {
       setStatus("err");
@@ -116,6 +119,15 @@ export function TotpEnroll({ userId, demo }: { userId: string; demo: boolean }) 
           Scan this URI in Microsoft Authenticator, Google Authenticator, 1Password,
           Bitwarden, Authy, or any RFC 6238 TOTP app. Or paste the secret manually.
         </p>
+        {qr ? (
+          <div className="mt-3 inline-block rounded-md border border-slate-800 bg-white p-3">
+            <img
+              src={`data:image/svg+xml;base64,${qr}`}
+              alt="TOTP QR code"
+              className="h-44 w-44"
+            />
+          </div>
+        ) : null}
         {uri ? (
           <pre className="mt-2 overflow-x-auto rounded-md bg-slate-950 p-3 font-mono text-[10px] text-slate-300">
             {uri}

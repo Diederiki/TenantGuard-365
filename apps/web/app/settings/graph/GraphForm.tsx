@@ -31,6 +31,48 @@ export function GraphForm({
   const [allowLocal, setAllowLocal] = useState(initial.allow_local_password);
   const [status, setStatus] = useState<"idle" | "saving" | "ok" | "err">("idle");
   const [errMsg, setErrMsg] = useState<string | null>(null);
+  const [testStatus, setTestStatus] = useState<"idle" | "running" | "ok" | "err">("idle");
+  const [testMsg, setTestMsg] = useState<string | null>(null);
+
+  async function testConnection() {
+    setTestStatus("running");
+    setTestMsg(null);
+
+    if (demo) {
+      await new Promise((r) => setTimeout(r, 600));
+      setTestStatus("ok");
+      setTestMsg("Demo: serviceHealth.snapshot returned 8 rows.");
+      return;
+    }
+
+    const base = process.env.NEXT_PUBLIC_API_URL ?? "";
+    const csrf = document.cookie.match(/(?:^|; )tg365_csrf=([^;]+)/);
+    const csrfHeader: Record<string, string> = csrf
+      ? { "X-CSRF-Token": decodeURIComponent(csrf[1]) }
+      : {};
+    try {
+      const r = await fetch(
+        `${base}/api/tenants/${tenantId}/collectors/serviceHealth.snapshot/run`,
+        { method: "POST", credentials: "include", headers: csrfHeader },
+      );
+      const body = await r.json().catch(() => null);
+      if (!r.ok) {
+        setTestStatus("err");
+        setTestMsg(`${r.status} — ${body?.detail ?? "request failed"}`);
+        return;
+      }
+      if (body?.status === "ok") {
+        setTestStatus("ok");
+        setTestMsg(`OK — rows_in=${body.rows_in ?? 0}, rows_out=${body.rows_out ?? 0}.`);
+      } else {
+        setTestStatus("err");
+        setTestMsg(`Status: ${body?.status ?? "unknown"} — ${body?.error ?? ""}`);
+      }
+    } catch (err) {
+      setTestStatus("err");
+      setTestMsg(String(err));
+    }
+  }
 
   async function save(e: React.FormEvent) {
     e.preventDefault();
@@ -136,7 +178,7 @@ export function GraphForm({
         </label>
       </div>
 
-      <div className="flex items-center gap-3">
+      <div className="flex flex-wrap items-center gap-3">
         <button
           type="submit"
           disabled={status === "saving"}
@@ -144,11 +186,25 @@ export function GraphForm({
         >
           {status === "saving" ? "Saving…" : "Save settings"}
         </button>
+        <button
+          type="button"
+          onClick={testConnection}
+          disabled={testStatus === "running"}
+          className="rounded-md border border-slate-700 bg-slate-900 px-4 py-2 text-sm font-medium text-slate-200 hover:bg-slate-800 disabled:opacity-50"
+        >
+          {testStatus === "running" ? "Testing…" : "Test connection"}
+        </button>
         {status === "ok" ? (
           <span className="text-xs text-emerald-300">Saved.</span>
         ) : null}
         {status === "err" && errMsg ? (
           <span className="text-xs text-rose-300">{errMsg}</span>
+        ) : null}
+        {testStatus === "ok" && testMsg ? (
+          <span className="text-xs text-emerald-300">{testMsg}</span>
+        ) : null}
+        {testStatus === "err" && testMsg ? (
+          <span className="text-xs text-rose-300">{testMsg}</span>
         ) : null}
       </div>
     </form>

@@ -7,11 +7,14 @@ via the platform's existing AES-GCM helpers (see app.graph.token_cache).
 from __future__ import annotations
 
 import base64
+import io
 import secrets
 import uuid
 from datetime import UTC, datetime
 
 import pyotp
+import qrcode
+import qrcode.image.svg
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -72,6 +75,19 @@ def verify(db: Session, user: PlatformUser, code: str) -> bool:
     return True
 
 
+def qr_svg_base64(otpauth_uri: str) -> str:
+    """Render an otpauth URI to a base64-encoded SVG QR code."""
+    buf = io.BytesIO()
+    img = qrcode.make(
+        otpauth_uri,
+        image_factory=qrcode.image.svg.SvgImage,
+        box_size=10,
+        border=2,
+    )
+    img.save(buf)
+    return base64.b64encode(buf.getvalue()).decode("ascii")
+
+
 def is_enrolled(db: Session, user_id: uuid.UUID) -> bool:
     row = db.scalar(
         select(PlatformUserTotp).where(PlatformUserTotp.user_id == user_id)
@@ -79,4 +95,3 @@ def is_enrolled(db: Session, user_id: uuid.UUID) -> bool:
     return row is not None and row.confirmed_at is not None
 
 
-_ = base64  # silence unused

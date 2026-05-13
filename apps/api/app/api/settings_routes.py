@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import secrets as _secrets
 import uuid
 from typing import Any
 
@@ -15,6 +14,7 @@ from app.audit.logger import AuditContext, AuditLogger
 from app.auth import permissions as P
 from app.auth import totp as totp_auth
 from app.auth.dependencies import AuthedUser, require
+from app.auth.passwords import hash_password
 from app.db.models import (
     PlatformRole,
     PlatformRoleAssignment,
@@ -22,8 +22,8 @@ from app.db.models import (
     Tenant,
     TenantGraphSettings,
 )
+from app.db.models.tenant_settings import wrap_app_secret
 from app.db.session import db_session
-from app.graph.token_cache import _aead
 
 router = APIRouter(prefix="/api/settings", tags=["settings"])
 
@@ -50,12 +50,6 @@ class GraphSettingsOut(BaseModel):
     collector_secret_present: bool
     feature_2fa_required: bool
     allow_local_password: bool
-
-
-def _wrap_secret(value: str) -> bytes:
-    nonce = _secrets.token_bytes(12)
-    ct = _aead().encrypt(nonce, value.encode("utf-8"), b"tg365-app-secret")
-    return nonce + ct
 
 
 def _settings_to_out(row: TenantGraphSettings) -> GraphSettingsOut:
@@ -123,9 +117,9 @@ def upsert_graph_settings(
     if body.collector_client_id is not None:
         row.collector_client_id = body.collector_client_id or None
     if body.portal_client_secret:
-        row.portal_client_secret_encrypted = _wrap_secret(body.portal_client_secret)
+        row.portal_client_secret_encrypted = wrap_app_secret(body.portal_client_secret)
     if body.collector_client_secret:
-        row.collector_client_secret_encrypted = _wrap_secret(body.collector_client_secret)
+        row.collector_client_secret_encrypted = wrap_app_secret(body.collector_client_secret)
     row.feature_2fa_required = body.feature_2fa_required
     row.allow_local_password = body.allow_local_password
 
@@ -220,12 +214,49 @@ def create_user(
     )
 
 
+# ---------------------------------------------------------------- Password
+
+
+class SetPasswordIn(BaseModel):
+    password: str
+
+
+@router.post(
+    "/users/{user_id}/password",
+    summary="Set or reset a local password for a user (auth_method must be 'local').",
+)
+def set_user_password(
+    user_id: uuid.UUID,
+    body: SetPasswordIn,
+    authed: AuthedUser = Depends(require(P.PLATFORM_USERS_MANAGE)),
+    db: Session = Depends(db_session),
+) -> dict[str, Any]:
+    user = db.get(PlatformUser, user_id)
+    if user is None:
+        raise HTTPException(status_code=404, detail="user_not_found")
+    if user.auth_method != "local":
+        raise HTTPException(status_code=400, detail="user_not_local_auth")
+    if len(body.password) < 12:
+        raise HTTPException(status_code=400, detail="password_too_short")
+    user.password_hash = hash_password(body.password)
+    AuditLogger(db).log(
+        AuditContext(actor_id=authed.user.id, actor_display=authed.user.display_name),
+        action="settings.user.password.set",
+        target_type="platform_user",
+        target_id=str(user.id),
+        target_label=user.email,
+    )
+    db.commit()
+    return {"ok": True}
+
+
 # ---------------------------------------------------------------- TOTP
 
 
 class TotpEnrollOut(BaseModel):
     secret: str
     otpauth_uri: str
+    qr_svg_base64: str
 
 
 class TotpVerifyIn(BaseModel):
@@ -246,6 +277,7 @@ def enroll_totp(
     if user is None:
         raise HTTPException(status_code=404, detail="user_not_found")
     secret, uri = totp_auth.enroll(db, user)
+    qr_b64 = totp_auth.qr_svg_base64(uri)
     AuditLogger(db).log(
         AuditContext(actor_id=authed.user.id, actor_display=authed.user.display_name),
         action="settings.user.totp.enrolled",
@@ -254,7 +286,7 @@ def enroll_totp(
         target_label=user.email,
     )
     db.commit()
-    return TotpEnrollOut(secret=secret, otpauth_uri=uri)
+    return TotpEnrollOut(secret=secret, otpauth_uri=uri, qr_svg_base64=qr_b64)
 
 
 @router.post(

@@ -6,13 +6,18 @@ import logging
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response, status
 from itsdangerous import BadSignature, URLSafeSerializer
+from pydantic import BaseModel
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.audit.logger import AuditContext, AuditLogger
 from app.auth import oidc
+from app.auth import totp as totp_auth
 from app.auth.mock import assert_mock_auth_allowed, resolve_mock_user
+from app.auth.passwords import verify_password
 from app.auth.sessions import get_session_store
 from app.config import get_settings
+from app.db.models import PlatformUser, PlatformUserTotp
 from app.db.session import db_session
 
 logger = logging.getLogger("tg365.api.auth")
@@ -185,6 +190,101 @@ async def callback(
     )
     db.commit()
     return final
+
+
+class LocalLoginIn(BaseModel):
+    email: str
+    password: str
+    code: str | None = None  # TOTP code if user has 2FA enrolled
+
+
+def _audit_failed_login(
+    db: Session,
+    request: Request,
+    email: str,
+    reason: str,
+    user_id: object | None = None,
+) -> None:
+    AuditLogger(db).log(
+        AuditContext(
+            actor_id=user_id,  # type: ignore[arg-type]
+            actor_display=email,
+            ip=request.client.host if request.client else None,
+            user_agent=request.headers.get("user-agent"),
+        ),
+        action="auth.signin.failure",
+        target_type="platform_user",
+        target_id=str(user_id) if user_id else None,
+        target_label=email,
+        new_value={"provider": "local", "reason": reason},
+    )
+    db.commit()
+
+
+@router.post("/login/local")
+def login_local(
+    body: LocalLoginIn,
+    request: Request,
+    response: Response,
+    db: Session = Depends(db_session),
+) -> dict[str, str]:
+    """Local password + optional TOTP sign-in.
+
+    Returns ``{"status": "totp_required"}`` (HTTP 401) if the user has TOTP
+    enrolled and no ``code`` was supplied. Otherwise 401 ``invalid_credentials``
+    or 200 with session cookies set.
+    """
+    email = body.email.strip().lower()
+    user = db.scalar(select(PlatformUser).where(PlatformUser.email == email))
+    # Constant-time-ish: always perform a hash compare even when user missing
+    # so we don't leak account existence via timing. Slightly costly but cheap
+    # at login frequency.
+    placeholder = b"$2b$12$" + b"x" * 53  # invalid bcrypt hash → checkpw False
+    user_hash = user.password_hash if (user and user.password_hash) else placeholder
+    password_ok = verify_password(body.password, user_hash)
+
+    if user is None or not password_ok:
+        _audit_failed_login(db, request, email, "invalid_credentials", getattr(user, "id", None))
+        raise HTTPException(status_code=401, detail="invalid_credentials")
+    if not user.is_active:
+        _audit_failed_login(db, request, email, "user_inactive", user.id)
+        raise HTTPException(status_code=403, detail="user_inactive")
+    if user.auth_method != "local":
+        _audit_failed_login(db, request, email, "wrong_auth_method", user.id)
+        raise HTTPException(status_code=400, detail="wrong_auth_method")
+
+    totp_row = db.scalar(select(PlatformUserTotp).where(PlatformUserTotp.user_id == user.id))
+    totp_required = (totp_row is not None and totp_row.confirmed_at is not None) or user.must_complete_totp
+
+    if totp_required:
+        if not body.code:
+            _audit_failed_login(db, request, email, "totp_required", user.id)
+            raise HTTPException(status_code=401, detail="totp_required")
+        if not totp_auth.verify(db, user, body.code):
+            _audit_failed_login(db, request, email, "totp_invalid", user.id)
+            raise HTTPException(status_code=401, detail="totp_invalid")
+
+    sid, _data = get_session_store().create(
+        user_id=user.id,
+        ip=request.client.host if request.client else None,
+        user_agent=request.headers.get("user-agent"),
+    )
+    _set_session_cookies(response, sid)
+    AuditLogger(db).log(
+        AuditContext(
+            actor_id=user.id,
+            actor_display=user.display_name,
+            ip=request.client.host if request.client else None,
+            user_agent=request.headers.get("user-agent"),
+        ),
+        action="auth.signin.success",
+        target_type="platform_user",
+        target_id=str(user.id),
+        target_label=user.email,
+        new_value={"provider": "local", "totp_used": totp_required},
+    )
+    db.commit()
+    return {"status": "ok", "user": user.email}
 
 
 @router.post("/logout")
