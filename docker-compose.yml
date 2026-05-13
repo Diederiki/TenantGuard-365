@@ -1,13 +1,15 @@
 # =============================================================================
 # M365 Enterprise Control Center — local development compose
 #
-# Phase 0 ships infrastructure services only (postgres, redis, opensearch,
-# minio, mailhog). The api/web/worker services are placeholder containers that
-# print a banner and stay healthy until Phase 1 fills them in.
+# Phase 1: real api / web / worker services build from apps/<name>.
+# Infra: Postgres, Redis, OpenSearch, MinIO, Mailhog.
 #
-# Usage:
-#   docker compose up -d postgres redis opensearch minio mailhog
-#   docker compose ps
+# Quickstart:
+#   cp .env.example .env
+#   docker compose up -d
+#   docker compose exec api alembic upgrade head
+#   docker compose exec api python -m app.scripts.seed
+#   open http://localhost:3000
 # =============================================================================
 
 name: tg365
@@ -24,7 +26,7 @@ volumes:
 
 services:
   # ---------------------------------------------------------------------------
-  # Postgres — primary database
+  # Postgres
   # ---------------------------------------------------------------------------
   postgres:
     image: postgres:16-alpine
@@ -47,7 +49,7 @@ services:
     networks: [tg365]
 
   # ---------------------------------------------------------------------------
-  # Redis — cache, broker, rate coordination
+  # Redis
   # ---------------------------------------------------------------------------
   redis:
     image: redis:7-alpine
@@ -66,8 +68,7 @@ services:
     networks: [tg365]
 
   # ---------------------------------------------------------------------------
-  # OpenSearch — audit/event/content search index
-  # Single-node dev cluster, security disabled for local use ONLY.
+  # OpenSearch
   # ---------------------------------------------------------------------------
   opensearch:
     image: opensearchproject/opensearch:2.13.0
@@ -100,7 +101,7 @@ services:
     networks: [tg365]
 
   # ---------------------------------------------------------------------------
-  # MinIO — S3-compatible object storage for report exports + evidence
+  # MinIO
   # ---------------------------------------------------------------------------
   minio:
     image: minio/minio:RELEASE.2024-12-18T13-15-44Z
@@ -123,7 +124,7 @@ services:
     networks: [tg365]
 
   # ---------------------------------------------------------------------------
-  # Mailhog — outbound email capture for development
+  # Mailhog
   # ---------------------------------------------------------------------------
   mailhog:
     image: mailhog/mailhog:v1.0.1
@@ -135,42 +136,90 @@ services:
     networks: [tg365]
 
   # ---------------------------------------------------------------------------
-  # API placeholder — replaced in Phase 1 by a real FastAPI service
+  # API — FastAPI
   # ---------------------------------------------------------------------------
   api:
-    image: alpine:3.20
+    build:
+      context: ./apps/api
+      target: dev
     container_name: tg365-api
-    restart: "no"
-    command: ["sh", "-c", "echo '[tg365-api] Phase 1 will replace this placeholder.' && sleep infinity"]
-    profiles: ["app"]
-    networks: [tg365]
+    restart: unless-stopped
+    environment:
+      ENVIRONMENT: ${ENVIRONMENT:-development}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      LOG_FORMAT: ${LOG_FORMAT:-json}
+      AUTH_MODE: ${AUTH_MODE:-mock}
+      DEV_SESSION_SECRET: ${DEV_SESSION_SECRET:-dev-insecure-do-not-use-in-prod-change-me-now}
+      APP_PUBLIC_URL: ${APP_PUBLIC_URL:-http://localhost:3000}
+      API_PUBLIC_URL: ${API_PUBLIC_URL:-http://localhost:8000}
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-tg365}:${POSTGRES_PASSWORD:-change-me}@postgres:5432/${POSTGRES_DB:-tg365}
+      REDIS_URL: redis://redis:6379/0
+      OPENSEARCH_URL: http://opensearch:9200
+      MINIO_ENDPOINT: minio:9000
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-tg365admin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-change-me-minio}
+      SMTP_HOST: mailhog
+      SMTP_PORT: 1025
+    ports:
+      - "127.0.0.1:8000:8000"
+    volumes:
+      - ./apps/api:/app
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
-
-  # ---------------------------------------------------------------------------
-  # Web placeholder — replaced in Phase 1 by a real Next.js service
-  # ---------------------------------------------------------------------------
-  web:
-    image: alpine:3.20
-    container_name: tg365-web
-    restart: "no"
-    command: ["sh", "-c", "echo '[tg365-web] Phase 1 will replace this placeholder.' && sleep infinity"]
-    profiles: ["app"]
+      opensearch:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request, sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8000/healthz', timeout=2).status==200 else 1)\""]
+      interval: 15s
+      timeout: 5s
+      retries: 10
     networks: [tg365]
 
   # ---------------------------------------------------------------------------
-  # Worker placeholder — replaced in Phase 1 by Celery/Dramatiq workers
+  # Worker — Dramatiq + APScheduler beat (role=all for local dev)
   # ---------------------------------------------------------------------------
   worker:
-    image: alpine:3.20
+    build:
+      context: ./apps/worker
     container_name: tg365-worker
-    restart: "no"
-    command: ["sh", "-c", "echo '[tg365-worker] Phase 1 will replace this placeholder.' && sleep infinity"]
-    profiles: ["app"]
-    networks: [tg365]
+    restart: unless-stopped
+    environment:
+      ENVIRONMENT: ${ENVIRONMENT:-development}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      LOG_FORMAT: ${LOG_FORMAT:-json}
+      REDIS_URL: redis://redis:6379/0
+      ROLE: all
+    volumes:
+      - ./apps/worker:/app
     depends_on:
       redis:
         condition: service_healthy
+    networks: [tg365]
+
+  # ---------------------------------------------------------------------------
+  # Web — Next.js dev server
+  # ---------------------------------------------------------------------------
+  web:
+    build:
+      context: ./apps/web
+      target: dev
+    container_name: tg365-web
+    restart: unless-stopped
+    environment:
+      NEXT_PUBLIC_API_URL: http://api:8000
+      NODE_ENV: development
+    ports:
+      - "127.0.0.1:3000:3000"
+    volumes:
+      - ./apps/web:/app
+      - /app/node_modules
+      - /app/.next
+    depends_on:
+      api:
+        condition: service_started
+    networks: [tg365]

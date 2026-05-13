@@ -1,13 +1,26 @@
 # =============================================================================
-# Phase 0 placeholder Dockerfile.
-# Phase 1 replaces this with a Python 3.12 build for Celery (or Dramatiq).
+# apps/worker — background workers + scheduler (Dramatiq + APScheduler)
 # =============================================================================
 
-FROM alpine:3.20
+FROM python:3.12-slim-bookworm AS base
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1
 
-LABEL phase="0"
-LABEL purpose="placeholder — Phase 1 will replace with worker image"
+RUN groupadd -g 10001 tg365 \
+ && useradd -u 10001 -g tg365 -m -s /usr/sbin/nologin tg365
 
+FROM base AS builder
+WORKDIR /build
+COPY requirements.txt /build/requirements.txt
+RUN pip install --prefix=/install -r requirements.txt
+
+FROM base AS runtime
+COPY --from=builder /install /usr/local
 WORKDIR /app
+COPY --chown=tg365:tg365 . /app
+USER tg365
 
-CMD ["sh", "-c", "echo '[tg365-worker] Phase 0 placeholder. Phase 1 introduces workers.'; sleep infinity"]
+# Default command runs both worker + beat in one process via the entrypoint.
+# In production each role gets its own container; see docker-compose.prod.yml.
+CMD ["python", "-m", "app.main"]

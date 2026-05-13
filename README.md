@@ -11,8 +11,8 @@ This is a **defensive, read-first** platform for IT administrators of a Microsof
 
 | Phase | Status | Description |
 |-------|--------|-------------|
-| **Phase 0** | ✅ In progress | Project blueprint, architecture docs, Microsoft Graph capability matrix, security model, monorepo skeleton, local Docker Compose skeleton |
-| Phase 1 | ⏳ Pending | Repo bootstrap (FastAPI + Next.js + Postgres + Redis + OpenSearch + MinIO + Mailhog) |
+| **Phase 0** | ✅ Done | Project blueprint, architecture docs, Microsoft Graph capability matrix, security model, monorepo skeleton, local Docker Compose skeleton |
+| **Phase 1** | ✅ Done | FastAPI api with /healthz + /readyz, Alembic baseline (tenants, RBAC, audit), Dramatiq worker + APScheduler beat + heartbeat, Next.js 14 dashboard with dark mode, Tailwind, shadcn-style cards, full Docker Compose, Makefile, CI |
 | Phase 2 | ⏳ Pending | Authentication (Entra OIDC), RBAC, technician audit trail |
 | Phase 3 | ⏳ Pending | Microsoft Graph connection center, app registration wizard, permission gap detector |
 | Phase 4 | ⏳ Pending | Core data collectors (users, groups, licenses, SharePoint inventory, sharing, sign-ins, audits) |
@@ -48,15 +48,13 @@ See [ROADMAP.md](ROADMAP.md) for the detailed plan.
 
 ---
 
-## Local startup (Phase 0 skeleton)
-
-Phase 0 ships **infrastructure only** so you can validate the stack on your machine before any feature work begins. The `api`, `web`, and `worker` containers are placeholders that print a banner and exit cleanly — they are filled in during Phase 1.
+## Local startup
 
 ### Prerequisites
 
 - Docker Desktop or Docker Engine **24+** with Compose v2
 - 8 GB RAM minimum free for containers (OpenSearch is the heavy one)
-- Ports free on host: `5432`, `6379`, `9200`, `9000`, `9001`, `8025`, `1025`
+- Ports free on host: `3000`, `5432`, `6379`, `8000`, `8025`, `9000`, `9001`, `9200`, `1025`
 
 ### First-time bootstrap
 
@@ -64,12 +62,18 @@ Phase 0 ships **infrastructure only** so you can validate the stack on your mach
 git clone https://github.com/Diederiki/TenantGuard-365.git
 cd TenantGuard-365
 cp .env.example .env
-# Edit .env — at minimum, change DEV_SESSION_SECRET and POSTGRES_PASSWORD before any non-dev use.
-docker compose up -d postgres redis opensearch minio mailhog
-docker compose ps
+# Edit .env — change DEV_SESSION_SECRET, POSTGRES_PASSWORD, MINIO_ROOT_PASSWORD before non-trivial use.
+
+# Bring up the full stack (api/web/worker + infra)
+make bootstrap        # = docker compose up -d  +  alembic upgrade head  +  seed
+
+# Or step-by-step:
+docker compose up -d
+docker compose exec api alembic upgrade head
+docker compose exec api python -m app.scripts.seed
 ```
 
-You should see five healthy infrastructure containers.
+Open http://localhost:3000 — the dashboard renders dark-mode by default and shows API + dependency health.
 
 ### Service URLs (local)
 
@@ -82,8 +86,8 @@ You should see five healthy infrastructure containers.
 | MinIO S3 API | http://localhost:9000 | S3-compatible API |
 | Mailhog UI | http://localhost:8025 | Captures outbound dev email |
 | Mailhog SMTP | `localhost:1025` | SMTP relay for dev |
-| API (Phase 1+) | http://localhost:8000 | FastAPI backend |
-| Web (Phase 1+) | http://localhost:3000 | Next.js frontend |
+| API | http://localhost:8000 | FastAPI backend (`/healthz`, `/readyz`, `/docs`) |
+| Web | http://localhost:3000 | Next.js dashboard |
 
 ### Tear down
 
@@ -94,12 +98,12 @@ docker compose down -v         # stop and wipe all data volumes (destructive)
 
 ---
 
-## What Phase 0 deliberately does NOT do
+## What this currently does NOT do (by design)
 
-- ❌ No Microsoft Graph calls — that begins in Phase 3 after the app registration is documented.
-- ❌ No user-facing screens — Phase 5 onward.
+- ❌ No Microsoft Graph calls yet — that begins in Phase 3 after the app registration is documented.
+- ❌ No real authentication yet — mock-auth scaffolding in Phase 2.
 - ❌ No remediation, no destructive actions — Phase 9, disabled by default.
-- ❌ No production deployment — Phase 10.
+- ❌ No production deployment yet — Phase 10.
 
 ---
 
