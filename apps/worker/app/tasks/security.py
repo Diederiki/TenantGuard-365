@@ -27,10 +27,7 @@ def evaluate_security_rules() -> None:
     try:
         from sqlalchemy import select
 
-        from app.db.models import Tenant  # type: ignore[import-not-found]
-        from app.db.session import get_session_factory  # type: ignore[import-not-found]
-        from app.security.engine import evaluate_all  # type: ignore[import-not-found]
-    except Exception as exc:
+        from app.db.models import Tenant        from app.db.session import get_session_factory        from app.security.engine import evaluate_all    except Exception as exc:
         logger.warning("security.eval.unavailable", extra={"err": str(exc)})
         return
 
