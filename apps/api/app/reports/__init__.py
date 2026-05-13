@@ -114,3 +114,4 @@ _ = Iterable
 
 # Eagerly load built-in reports.
 from app.reports import builtins as _builtins  # noqa: E402,F401
+from app.reports import extra_builtins as _extra_builtins  # noqa: E402,F401

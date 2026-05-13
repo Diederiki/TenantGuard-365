@@ -70,7 +70,10 @@ def patch_alert(
     alert = db.get(SecurityAlert, alert_id)
     if alert is None:
         raise HTTPException(status_code=404, detail="alert_not_found")
-    old = {"status": alert.status, "assigned_to": str(alert.assigned_to) if alert.assigned_to else None}
+    old = {
+        "status": alert.status,
+        "assigned_to": str(alert.assigned_to) if alert.assigned_to else None,
+    }
     if body.status is not None:
         alert.status = body.status
     if body.assigned_to is not None:
