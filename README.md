@@ -12,16 +12,16 @@ This is a **defensive, read-first** platform for IT administrators of a Microsof
 | Phase | Status | Description |
 |-------|--------|-------------|
 | **Phase 0** | ✅ Done | Project blueprint, architecture docs, Microsoft Graph capability matrix, security model, monorepo skeleton, local Docker Compose skeleton |
-| **Phase 1** | ✅ Done | FastAPI api with /healthz + /readyz, Alembic baseline (tenants, RBAC, audit), Dramatiq worker + APScheduler beat + heartbeat, Next.js 14 dashboard with dark mode, Tailwind, shadcn-style cards, full Docker Compose, Makefile, CI |
-| Phase 2 | ⏳ Pending | Authentication (Entra OIDC), RBAC, technician audit trail |
-| Phase 3 | ⏳ Pending | Microsoft Graph connection center, app registration wizard, permission gap detector |
-| Phase 4 | ⏳ Pending | Core data collectors (users, groups, licenses, SharePoint inventory, sharing, sign-ins, audits) |
-| Phase 5 | ⏳ Pending | Dashboard and report engine (CSV/XLSX/PDF/HTML export, scheduling) |
-| Phase 6 | ⏳ Pending | SharePoint deep audit (inheritance, broken inheritance, sharing, anonymous links, orphans) |
-| Phase 7 | ⏳ Pending | Unified audit ingestion + security rule engine + investigation workflow |
-| Phase 8 | ⏳ Pending | Content search & investigations (regex/pattern, scheduled, RBAC-gated) |
-| Phase 9 | ⏳ Pending | Remediation framework (dry-run, approval workflow, disabled by default) |
-| Phase 10 | ⏳ Pending | Enterprise hardening, tests, backup/restore, production VPS deploy |
+| **Phase 1** | ✅ Done | FastAPI + Alembic baseline + Dramatiq worker + Next.js 14 dashboard + full Docker Compose + Makefile + CI |
+| **Phase 2** | ✅ Done | Entra OIDC + mock auth, Redis-backed sessions, CSRF, RBAC `require()` dependency, technician audit log + viewer |
+| **Phase 3** | ✅ Done | Encrypted Graph token cache (AES-GCM + tenant-bound HMAC), async Graph client with 429/Retry-After + exponential backoff + pagination + per-tenant concurrency |
+| **Phase 4** | ✅ Done | Collector framework + entra.users, sharepoint.sites, serviceHealth collectors + GraphSyncJob run tracking |
+| **Phase 5** | ✅ Done | Report engine + built-in reports + CSV / HTML / XLSX / PDF exporters (stdlib only) + ReportRun + ReportExport tables |
+| **Phase 6** | ✅ Done | SharePoint inventory + permissions + sharing-links models and `sharepoint.sites.inventory` / `sharepoint.sharing.anonymous_links` reports |
+| **Phase 7** | ✅ Done | Security rule engine + alerts (dedup + occurrence count) + investigation cases + 2 built-in rules (anonymous-link, active-guest) |
+| **Phase 8** | ✅ Done | Content search framework + sensitive-info pattern library (email, IBAN, Visa, US SSN, AWS key) — feature flag gated |
+| **Phase 9** | ✅ Done | Remediation framework + 5 policies (sharing-link, guest-from-group, disable-account, revoke-sessions, mailbox-forwarding) — all ship `enabled=false`, apply handlers stubbed |
+| **Phase 10** | ✅ Done | Backup scripts (Postgres, OpenSearch snapshot, MinIO mirror), consent verifier, security-posture self-tests, integration test scaffold, production compose overlay |
 
 See [ROADMAP.md](ROADMAP.md) for the detailed plan.
 
