@@ -113,20 +113,17 @@ def export_xlsx(
         'xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">'
         '<sheets><sheet name="Report" sheetId="1" r:id="rId1"/></sheets></workbook>'
     )
-    rels_xml = (  # noqa: E501
-        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+    rels_xml = (        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
         '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
         '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>'
         "</Relationships>"
     )
-    workbook_rels_xml = (  # noqa: E501
-        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+    workbook_rels_xml = (        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
         '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
         '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/>'
         "</Relationships>"
     )
-    content_types_xml = (  # noqa: E501
-        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+    content_types_xml = (        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
         '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">'
         '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>'
         '<Default Extension="xml" ContentType="application/xml"/>'
