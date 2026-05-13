@@ -42,7 +42,7 @@ def _scrub(value: Any) -> Any:
 
 
 class ScrubbingJsonFormatter(JsonFormatter):
-    def add_fields(  # type: ignore[override]
+    def add_fields(
         self,
         log_record: dict[str, Any],
         record: logging.LogRecord,

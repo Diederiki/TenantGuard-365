@@ -5,7 +5,7 @@ from __future__ import annotations
 from functools import lru_cache
 from typing import Literal
 
-from pydantic import Field, PostgresDsn, RedisDsn
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 Environment = Literal["development", "staging", "production"]
@@ -59,12 +59,12 @@ class Settings(BaseSettings):
     token_cache_master_key: str | None = None
 
     # Database
-    database_url: PostgresDsn = Field(
+    database_url: str = Field(
         default="postgresql+psycopg://tg365:change-me@postgres:5432/tg365",
     )
 
     # Redis
-    redis_url: RedisDsn = Field(default="redis://redis:6379/0")
+    redis_url: str = Field(default="redis://redis:6379/0")
 
     # OpenSearch
     opensearch_url: str = "http://opensearch:9200"

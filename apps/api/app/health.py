@@ -36,7 +36,7 @@ async def _check_db() -> tuple[bool, str | None]:
 
 async def _check_redis() -> tuple[bool, str | None]:
     try:
-        client = aioredis.from_url(str(get_settings().redis_url))
+        client = aioredis.from_url(get_settings().redis_url)  # type: ignore[no-untyped-call]
         try:
             await client.ping()
         finally:
