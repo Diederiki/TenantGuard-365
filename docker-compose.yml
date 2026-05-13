@@ -211,7 +211,8 @@ services:
     container_name: tg365-web
     restart: unless-stopped
     environment:
-      NEXT_PUBLIC_API_URL: http://api:8000
+      NEXT_PUBLIC_API_URL: http://localhost:8000
+      API_INTERNAL_URL: http://api:8000
       NODE_ENV: development
     ports:
       - "127.0.0.1:3000:3000"
