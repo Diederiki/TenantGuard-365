@@ -89,7 +89,7 @@ def build_token_provider(db: Session) -> Callable[[str], Awaitable[str]]:
             try:
                 env = decrypt(row.envelope, associated_data_for_tenant(tenant_id))
                 return env.access_token
-            except Exception as exc:  # noqa: BLE001  fall through to refresh
+            except Exception as exc:
                 logger.warning("graph.token.cache_decrypt_failed", extra={"err": str(exc)})
 
         # 2. Acquire via client credentials. Uses env settings for now.

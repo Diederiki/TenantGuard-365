@@ -45,7 +45,10 @@ PATTERN_LIBRARY: list[PatternTemplate] = [
     PatternTemplate(
         key="visa_card",
         display_name="Visa card number",
-        description="Visa PAN (13 or 16 digits). False positives possible — combine with Luhn check.",
+        description=(
+            "Visa PAN (13 or 16 digits). False positives possible; "
+            "combine with a Luhn check."
+        ),
         regex=r"\b4\d{12}(?:\d{3})?\b",
         severity="critical",
     ),

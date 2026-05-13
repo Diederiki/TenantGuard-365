@@ -1,4 +1,4 @@
-"""Report export formatters: CSV, XLSX (xlsxwriter), HTML, PDF (HTML→pdfkit fallback: plain text)."""
+"""Report export formatters: CSV, HTML, XLSX (stdlib OOXML), PDF (stdlib)."""
 
 from __future__ import annotations
 
@@ -59,10 +59,10 @@ def export_html(
 def export_xlsx(
     title: str, columns: list[ColumnSpec], rows: Iterable[dict[str, Any]]
 ) -> bytes:
-    """Minimal XLSX writer via the standard `zipfile` module.
+    """Minimal XLSX writer via the standard zipfile module.
 
-    Avoids a hard dependency on openpyxl in Phase 0–5. Produces a valid
-    OOXML workbook with one sheet, a frozen header row, and inline strings.
+    Avoids a hard dependency on openpyxl. Produces a valid OOXML workbook
+    with one sheet, a frozen header row, and inline strings.
     """
     import zipfile
     from xml.sax.saxutils import escape as xescape
@@ -113,19 +113,19 @@ def export_xlsx(
         'xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">'
         '<sheets><sheet name="Report" sheetId="1" r:id="rId1"/></sheets></workbook>'
     )
-    rels_xml = (
+    rels_xml = (  # noqa: E501
         '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
         '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
         '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>'
         "</Relationships>"
     )
-    workbook_rels_xml = (
+    workbook_rels_xml = (  # noqa: E501
         '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
         '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
         '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/>'
         "</Relationships>"
     )
-    content_types_xml = (
+    content_types_xml = (  # noqa: E501
         '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
         '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">'
         '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>'

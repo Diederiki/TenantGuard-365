@@ -24,7 +24,10 @@ async def _dry_run_disable_sharing_link(
     return {
         "would_call": "DELETE /sites/{siteId}/items/{itemId}/permissions/{permissionId}",
         "target": action.target_id,
-        "predicted_result": "link disabled; existing recipients keep access only if they have an explicit grant",
+        "predicted_result": (
+            "link disabled; existing recipients keep access only if they have an "
+            "explicit grant"
+        ),
     }
 
 
@@ -44,7 +47,10 @@ async def _dry_run_disable_account(
     return {
         "would_call": "PATCH /users/{id} accountEnabled=false",
         "target": action.target_id,
-        "predicted_result": "user sign-in blocked; tokens remain valid until expiry — combine with revoke_sessions",
+        "predicted_result": (
+            "user sign-in blocked; tokens remain valid until expiry. "
+            "Combine with revoke_sessions to also kick existing sessions."
+        ),
     }
 
 
@@ -62,9 +68,15 @@ async def _dry_run_remove_mailbox_forwarding(
     _db: Session, action: RemediationAction
 ) -> dict[str, object]:
     return {
-        "would_call": "PATCH /users/{id}/mailboxSettings forwardingAddress=null + delete forwarding inbox rules",
+        "would_call": (
+            "PATCH /users/{id}/mailboxSettings forwardingAddress=null + "
+            "delete forwarding inbox rules"
+        ),
         "target": action.target_id,
-        "predicted_result": "external forwarding disabled at the mailbox setting; any inbox rules with forwarding cleared",
+        "predicted_result": (
+            "external forwarding disabled at the mailbox setting; any inbox "
+            "rules with forwarding cleared"
+        ),
     }
 
 
@@ -108,7 +120,10 @@ _POLICIES = [
     RemediationPolicyDef(
         key="exchange.remove_mailbox_forwarding",
         display_name="Remove mailbox forwarding",
-        description="Disable mailbox-setting forwarding and clear inbox rules that forward externally.",
+        description=(
+            "Disable mailbox-setting forwarding and clear inbox rules that "
+            "forward externally."
+        ),
         required_permission="remediation.submit",
         required_scopes=["MailboxSettings.ReadWrite"],
         supports_rollback=False,

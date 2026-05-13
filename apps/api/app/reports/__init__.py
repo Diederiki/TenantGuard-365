@@ -110,6 +110,7 @@ def record_export(
     return export
 
 
-# Eagerly load built-in reports.
-from app.reports import builtins  # noqa: E402,F401
 _ = Iterable
+
+# Eagerly load built-in reports.
+from app.reports import builtins as _builtins  # noqa: E402,F401

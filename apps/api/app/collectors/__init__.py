@@ -114,7 +114,7 @@ async def run_collector(
     ctx = CollectorContext(tenant_id=tenant_id, db=db)
     try:
         await collector.run(ctx)
-    except Exception as exc:  # noqa: BLE001  collector framework converts all
+    except Exception as exc:
         run.status = "failed"
         run.finished_at = datetime.now(UTC)
         run.error = f"{type(exc).__name__}: {exc}"[:8000]

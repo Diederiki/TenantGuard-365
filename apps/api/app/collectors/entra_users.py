@@ -10,8 +10,6 @@ from sqlalchemy.dialects.postgresql import insert
 
 from app.collectors import Collector, CollectorContext, CollectorManifest, register
 from app.db.models import M365User
-from app.graph.token_provider import build_token_provider
-
 
 MANIFEST = CollectorManifest(
     key="entra.users",
@@ -38,6 +36,7 @@ async def run(ctx: CollectorContext) -> None:
     framework smoke test, ``run_with_items`` is the testable seam.
     """
     from app.graph.client import GraphClient  # local to avoid cycle in tests
+    from app.graph.token_provider import build_token_provider
 
     provider = build_token_provider(ctx.db)
     gc = GraphClient(provider)
