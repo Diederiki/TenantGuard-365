@@ -70,7 +70,8 @@ def dispatch_alert(db: Session, alert: SecurityAlert) -> None:
 
 def _send(channel: NotificationChannel, body: NotificationBody) -> None:
     if channel.kind == "email":
-        to = list(channel.config.get("to") or [])
+        raw = channel.config.get("to") or []
+        to = [str(x) for x in raw] if isinstance(raw, list) else []
         if to:
             asyncio.run(send_email(to, body))
         return
