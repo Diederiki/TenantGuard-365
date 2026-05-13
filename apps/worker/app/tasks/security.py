@@ -25,10 +25,11 @@ def evaluate_security_rules() -> None:
     dependency at this stage the evaluator function is imported lazily.
     """
     try:
-        from app.security.engine import evaluate_all  # type: ignore[import-not-found]
+        from sqlalchemy import select
+
         from app.db.models import Tenant  # type: ignore[import-not-found]
         from app.db.session import get_session_factory  # type: ignore[import-not-found]
-        from sqlalchemy import select
+        from app.security.engine import evaluate_all  # type: ignore[import-not-found]
     except Exception as exc:
         logger.warning("security.eval.unavailable", extra={"err": str(exc)})
         return

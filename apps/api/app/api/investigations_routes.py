@@ -12,7 +12,6 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.audit.logger import AuditContext, AuditLogger
-from app.auth import permissions as P
 from app.auth.dependencies import AuthedUser, require
 from app.db.models import InvestigationCase, InvestigationCaseEvent
 from app.db.session import db_session

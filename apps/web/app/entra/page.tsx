@@ -41,7 +41,7 @@ export default async function EntraPage() {
           </h1>
           <p className="mt-1 max-w-2xl text-sm text-slate-400">
             Users, groups, licenses, role assignments. Read-only mirror of the
-            tenant's Entra ID directory via Microsoft Graph.
+            tenant&apos;s Entra ID directory via Microsoft Graph.
           </p>
         </header>
 

@@ -110,7 +110,11 @@ def list_permissions(
     db: Session = Depends(db_session),
 ) -> list[PlatformPermission]:
     return list(
-        db.scalars(select(PlatformPermission).order_by(PlatformPermission.category, PlatformPermission.key))
+        db.scalars(
+            select(PlatformPermission).order_by(
+                PlatformPermission.category, PlatformPermission.key
+            )
+        )
     )
 
 
