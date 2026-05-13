@@ -45,7 +45,7 @@ def _bump_next_run(cron: str, *, after: datetime) -> datetime:
     # Full 5-field cron via croniter if installed.
     if " " in cron:
         try:
-            from croniter import croniter
+            from croniter import croniter  # type: ignore[import-untyped]
 
             return croniter(cron, after).get_next(datetime)  # type: ignore[no-any-return]
         except Exception:

@@ -47,7 +47,10 @@ def add_comment(
     alert = db.get(SecurityAlert, alert_id)
     if alert is None:
         raise HTTPException(status_code=404, detail="alert_not_found")
-    comments = list(alert.payload.get("comments") or [])
+    raw_comments = alert.payload.get("comments") or []
+    comments: list[dict[str, Any]] = (
+        list(raw_comments) if isinstance(raw_comments, list) else []
+    )
     comments.append(
         {
             "by": str(authed.user.id),
@@ -145,7 +148,10 @@ def list_comments(
     alert = db.get(SecurityAlert, alert_id)
     if alert is None:
         raise HTTPException(status_code=404, detail="alert_not_found")
-    return list(alert.payload.get("comments") or [])
+    raw = alert.payload.get("comments") or []
+    if not isinstance(raw, list):
+        return []
+    return [r for r in raw if isinstance(r, dict)]
 
 
 _ = select  # silence unused

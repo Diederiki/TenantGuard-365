@@ -43,7 +43,7 @@ def _client_actor(request: Request) -> str:
     return f"ip:{request.client.host if request.client else 'unknown'}"
 
 
-def install_rate_limit(app):  # type: ignore[no-untyped-def]
+def install_rate_limit(app) -> None:  # type: ignore[no-untyped-def]
     """Install the middleware. Safe to call multiple times in tests."""
     settings = get_settings()
     r = redis.from_url(  # type: ignore[no-untyped-call]
@@ -52,7 +52,7 @@ def install_rate_limit(app):  # type: ignore[no-untyped-def]
         socket_connect_timeout=1.0,
     )
 
-    @app.middleware("http")
+    @app.middleware("http")  # type: ignore[misc]
     async def rate_limit_middleware(
         request: Request,
         call_next: Callable[[Request], Awaitable[Response]],
