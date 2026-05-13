@@ -81,7 +81,7 @@ def run_report(
     )
     db.add(run)
     db.flush()
-    stmt: Select = definition.builder(saved.tenant_id, saved.filters)
+    stmt: Select[Any] = definition.builder(saved.tenant_id, saved.filters)
     rows = [dict(r._mapping) for r in db.execute(stmt).all()]
     run.finished_at = datetime.now(UTC)
     run.rows = len(rows)

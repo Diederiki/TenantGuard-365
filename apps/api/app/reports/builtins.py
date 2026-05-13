@@ -11,7 +11,7 @@ from app.db.models import M365User, SharePointSharingLink, SharePointSite
 from app.reports import ColumnSpec, ReportDefinition, register
 
 
-def _users_all(tenant_id: uuid.UUID, _filters: dict[str, Any]) -> Select:
+def _users_all(tenant_id: uuid.UUID, _filters: dict[str, Any]) -> Select[Any]:
     return select(
         M365User.user_principal_name.label("user_principal_name"),
         M365User.display_name.label("display_name"),
@@ -43,7 +43,7 @@ register(
 )
 
 
-def _users_guests(tenant_id: uuid.UUID, _filters: dict[str, Any]) -> Select:
+def _users_guests(tenant_id: uuid.UUID, _filters: dict[str, Any]) -> Select[Any]:
     return select(
         M365User.user_principal_name.label("user_principal_name"),
         M365User.display_name.label("display_name"),
@@ -74,7 +74,7 @@ register(
 )
 
 
-def _sharepoint_sites_inventory(tenant_id: uuid.UUID, _filters: dict[str, Any]) -> Select:
+def _sharepoint_sites_inventory(tenant_id: uuid.UUID, _filters: dict[str, Any]) -> Select[Any]:
     return select(
         SharePointSite.display_name.label("display_name"),
         SharePointSite.web_url.label("web_url"),
@@ -102,7 +102,7 @@ register(
 )
 
 
-def _sharepoint_anonymous_links(tenant_id: uuid.UUID, _filters: dict[str, Any]) -> Select:
+def _sharepoint_anonymous_links(tenant_id: uuid.UUID, _filters: dict[str, Any]) -> Select[Any]:
     return select(
         SharePointSharingLink.scope_id.label("target"),
         SharePointSharingLink.scope.label("scope"),
