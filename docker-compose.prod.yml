@@ -1,0 +1,103 @@
+# =============================================================================
+# M365 Enterprise Control Center — production compose overlay
+#
+# Used with:
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+#
+# Phase 10 hardens this file. For now it lays down the intended shape:
+#   - Reverse proxy (Caddy) terminates TLS
+#   - Internal services NOT published to host (no host port bindings)
+#   - OpenSearch single-node is acceptable for small tenants but Phase 10
+#     adds an opt-in multi-node profile.
+#   - Volumes use named external drivers in real deploys.
+# =============================================================================
+
+name: tg365
+
+services:
+
+  postgres:
+    restart: always
+    ports: !reset []        # do not publish Postgres to the host in prod
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+
+  redis:
+    restart: always
+    ports: !reset []
+
+  opensearch:
+    restart: always
+    ports: !reset []
+    environment:
+      - cluster.name=tg365-prod
+      - node.name=tg365-os-1
+      - discovery.type=single-node
+      - bootstrap.memory_lock=true
+      - "OPENSEARCH_JAVA_OPTS=-Xms2g -Xmx2g"
+      # Security plugin is enabled in prod — credentials must be set via env.
+      - "OPENSEARCH_INITIAL_ADMIN_PASSWORD=${OPENSEARCH_ADMIN_PASSWORD}"
+
+  minio:
+    restart: always
+    ports: !reset []
+
+  mailhog:
+    profiles: ["never"]      # do not run Mailhog in production; use real SMTP
+
+  api:
+    image: ghcr.io/diederiki/tenantguard-365/api:latest
+    restart: always
+    command: !reset null
+    profiles: !reset []
+    read_only: true
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+    tmpfs:
+      - /tmp
+
+  web:
+    image: ghcr.io/diederiki/tenantguard-365/web:latest
+    restart: always
+    command: !reset null
+    profiles: !reset []
+    read_only: true
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+
+  worker:
+    image: ghcr.io/diederiki/tenantguard-365/worker:latest
+    restart: always
+    command: !reset null
+    profiles: !reset []
+    read_only: true
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+    tmpfs:
+      - /tmp
+
+  caddy:
+    image: caddy:2.8-alpine
+    container_name: tg365-caddy
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./infra/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    networks: [tg365]
+    depends_on:
+      - api
+      - web
+
+volumes:
+  caddy-data:
+  caddy-config:

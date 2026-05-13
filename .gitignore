@@ -1,0 +1,102 @@
+# Environment
+.env
+.env.*
+!.env.example
+
+# Secrets
+*.pem
+*.key
+*.crt
+*.pfx
+*.p12
+secrets/
+.secrets/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+.venv/
+venv/
+env/
+ENV/
+.python-version
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+
+# Node / Next.js
+node_modules/
+.next/
+out/
+.turbo/
+.npm/
+.pnpm-store/
+.yarn/cache/
+.yarn/install-state.gz
+yarn-error.log
+npm-debug.log*
+.parcel-cache/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs
+logs/
+*.log
+
+# Docker
+.docker/
+docker-volumes/
+
+# Data
+data/
+postgres-data/
+opensearch-data/
+minio-data/
+redis-data/
+
+# Test artifacts
+coverage/
+playwright-report/
+test-results/
+
+# Build artifacts
+*.tsbuildinfo
+
+# Local overrides
+docker-compose.override.yml
+docker-compose.override.yaml
+
+# Exports / reports generated locally
+exports/
+reports/output/

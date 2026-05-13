@@ -1,0 +1,176 @@
+# =============================================================================
+# M365 Enterprise Control Center — local development compose
+#
+# Phase 0 ships infrastructure services only (postgres, redis, opensearch,
+# minio, mailhog). The api/web/worker services are placeholder containers that
+# print a banner and stay healthy until Phase 1 fills them in.
+#
+# Usage:
+#   docker compose up -d postgres redis opensearch minio mailhog
+#   docker compose ps
+# =============================================================================
+
+name: tg365
+
+networks:
+  tg365:
+    driver: bridge
+
+volumes:
+  postgres-data:
+  redis-data:
+  opensearch-data:
+  minio-data:
+
+services:
+  # ---------------------------------------------------------------------------
+  # Postgres — primary database
+  # ---------------------------------------------------------------------------
+  postgres:
+    image: postgres:16-alpine
+    container_name: tg365-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-tg365}
+      POSTGRES_USER: ${POSTGRES_USER:-tg365}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change-me}
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./infra/postgres/initdb:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-tg365} -d ${POSTGRES_DB:-tg365}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks: [tg365]
+
+  # ---------------------------------------------------------------------------
+  # Redis — cache, broker, rate coordination
+  # ---------------------------------------------------------------------------
+  redis:
+    image: redis:7-alpine
+    container_name: tg365-redis
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes", "--maxmemory-policy", "allkeys-lru"]
+    ports:
+      - "127.0.0.1:6379:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+    networks: [tg365]
+
+  # ---------------------------------------------------------------------------
+  # OpenSearch — audit/event/content search index
+  # Single-node dev cluster, security disabled for local use ONLY.
+  # ---------------------------------------------------------------------------
+  opensearch:
+    image: opensearchproject/opensearch:2.13.0
+    container_name: tg365-opensearch
+    restart: unless-stopped
+    environment:
+      - cluster.name=tg365-dev
+      - node.name=tg365-os-1
+      - discovery.type=single-node
+      - bootstrap.memory_lock=true
+      - "OPENSEARCH_JAVA_OPTS=-Xms1g -Xmx1g"
+      - "DISABLE_SECURITY_PLUGIN=true"
+      - "DISABLE_INSTALL_DEMO_CONFIG=true"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    ports:
+      - "127.0.0.1:9200:9200"
+    volumes:
+      - opensearch-data:/usr/share/opensearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:9200/_cluster/health | grep -E '\"status\":\"(green|yellow)\"'"]
+      interval: 15s
+      timeout: 5s
+      retries: 20
+    networks: [tg365]
+
+  # ---------------------------------------------------------------------------
+  # MinIO — S3-compatible object storage for report exports + evidence
+  # ---------------------------------------------------------------------------
+  minio:
+    image: minio/minio:RELEASE.2024-12-18T13-15-44Z
+    container_name: tg365-minio
+    restart: unless-stopped
+    command: ["server", "/data", "--console-address", ":9001"]
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-tg365admin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-change-me-minio}
+    ports:
+      - "127.0.0.1:9000:9000"
+      - "127.0.0.1:9001:9001"
+    volumes:
+      - minio-data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:9000/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks: [tg365]
+
+  # ---------------------------------------------------------------------------
+  # Mailhog — outbound email capture for development
+  # ---------------------------------------------------------------------------
+  mailhog:
+    image: mailhog/mailhog:v1.0.1
+    container_name: tg365-mailhog
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:1025:1025"
+      - "127.0.0.1:8025:8025"
+    networks: [tg365]
+
+  # ---------------------------------------------------------------------------
+  # API placeholder — replaced in Phase 1 by a real FastAPI service
+  # ---------------------------------------------------------------------------
+  api:
+    image: alpine:3.20
+    container_name: tg365-api
+    restart: "no"
+    command: ["sh", "-c", "echo '[tg365-api] Phase 1 will replace this placeholder.' && sleep infinity"]
+    profiles: ["app"]
+    networks: [tg365]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  # ---------------------------------------------------------------------------
+  # Web placeholder — replaced in Phase 1 by a real Next.js service
+  # ---------------------------------------------------------------------------
+  web:
+    image: alpine:3.20
+    container_name: tg365-web
+    restart: "no"
+    command: ["sh", "-c", "echo '[tg365-web] Phase 1 will replace this placeholder.' && sleep infinity"]
+    profiles: ["app"]
+    networks: [tg365]
+
+  # ---------------------------------------------------------------------------
+  # Worker placeholder — replaced in Phase 1 by Celery/Dramatiq workers
+  # ---------------------------------------------------------------------------
+  worker:
+    image: alpine:3.20
+    container_name: tg365-worker
+    restart: "no"
+    command: ["sh", "-c", "echo '[tg365-worker] Phase 1 will replace this placeholder.' && sleep infinity"]
+    profiles: ["app"]
+    networks: [tg365]
+    depends_on:
+      redis:
+        condition: service_healthy

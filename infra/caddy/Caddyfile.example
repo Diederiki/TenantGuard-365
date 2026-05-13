@@ -1,0 +1,41 @@
+# Example Caddyfile for production. Copy to ./Caddyfile and adapt.
+# Used by docker-compose.prod.yml.
+
+{
+    # global options
+    email ops@example.com         # ACME registration contact
+    admin off                     # disable admin API
+    servers {
+        protocols h1 h2 h3
+    }
+}
+
+m365cc.example.com {
+    encode zstd gzip
+
+    log {
+        output stdout
+        format json
+    }
+
+    @api path /api/* /auth/* /metrics
+    handle @api {
+        reverse_proxy api:8000 {
+            header_up X-Forwarded-Host {host}
+            header_up X-Forwarded-Proto {scheme}
+            header_up X-Real-IP {remote_host}
+        }
+    }
+
+    handle {
+        reverse_proxy web:3000
+    }
+
+    header {
+        Strict-Transport-Security "max-age=63072000; includeSubDomains; preload"
+        X-Content-Type-Options    "nosniff"
+        X-Frame-Options           "DENY"
+        Referrer-Policy           "same-origin"
+        Permissions-Policy        "camera=(), microphone=(), geolocation=()"
+    }
+}
