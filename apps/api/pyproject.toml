@@ -23,6 +23,7 @@ select = [
 ignore = [
     "S101",  # assert in tests
     "S104",  # binding 0.0.0.0 (we run inside containers)
+    "B008",  # FastAPI idiom: Depends() in default args is intentional
 ]
 
 [tool.ruff.lint.per-file-ignores]
