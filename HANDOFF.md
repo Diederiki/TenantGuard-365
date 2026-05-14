@@ -5,71 +5,118 @@ Concise state-of-the-world for the next session. Read this first.
 ## Repo
 
 - `C:\tenantguard365` · github.com/Diederiki/TenantGuard-365 · branch `main`
-- Last green CI commit: `dd46f6e` (Phase 23 demo mode)
-- Pending work below is committed in the **next** push after this doc.
+- Last green CI commit: `40d81ab` (Phase 26).
+- All work is pushed.
 
-## What just landed (Phase 24 — admin settings + 2FA)
+## What just landed (Phases 25 + 26)
+
+### Phase 25 — local auth + TOTP challenge + token-provider DB-first
 
 **Backend**
-- Alembic `0003_totp_and_settings`: `platform_user_totps`, `tenant_graph_settings`, plus 3 new columns on `platform_users` (`password_hash`, `must_complete_totp`, `auth_method`).
-- ORM: `PlatformUserTotp`, `TenantGraphSettings`. `PlatformUser` carries the new columns.
-- `app/auth/totp.py`: enroll() + verify() using `pyotp`, secrets sealed with AES-GCM via existing token-cache helpers.
-- `app/api/settings_routes.py`:
-  - `GET /api/settings/graph/{tenant_id}` + `POST` upsert (secrets encrypted at rest, never returned in plaintext)
-  - `POST /api/settings/users` — provision new platform user with auth_method (entra | local | mock) + role keys
-  - `POST /api/settings/users/{id}/totp/enroll` → returns `{secret, otpauth_uri}`
-  - `POST /api/settings/users/{id}/totp/verify` — confirm enrollment
-- All endpoints audited via `AuditLogger`. Wired in `app/main.py`.
-- `requirements.txt`: added `pyotp==2.9.0`, `qrcode==8.0`.
+- `POST /auth/login/local` — email + password (+ optional TOTP code). Returns
+  `401 totp_required` when the user has TOTP enrolled but no code was sent.
+  Constant-time-ish on unknown emails by always running a bcrypt compare.
+- `POST /api/settings/users/{id}/password` — admin sets/resets a local
+  password. Min length 12, bcrypt-hashed (`bcrypt==4.2.1`).
+- TOTP enroll now also returns `qr_svg_base64` (rendered server-side).
+- Rate-limit middleware: extra strict bucket on `/auth/login/local`
+  (10 / 5 min) and `*/totp/verify` (5 / min).
+- `build_token_provider` reads `tenant_graph_settings` first, env fallback.
+- `wrap_app_secret` / `unwrap_app_secret` extracted to the model module
+  (shared between `settings_routes` and `token_provider`).
 
 **Web**
-- `/settings` (index) → cards for Graph, Users, Delegation, Audit
-- `/settings/graph` → GraphForm component, POSTs to `/api/settings/graph/{tenant_id}`. Lists 16 required scopes + step-by-step.
-- `/settings/users` → user list with auth-method badges + "+ New user" CTA.
-- `/settings/users/new` → NewUserForm: email, display name, auth method (Entra / local+TOTP / mock), TOTP-required toggle, role checkboxes.
-- `/settings/users/[id]/totp` → TotpEnroll component: shows `otpauth://...` URI + base32 secret, accepts 6-digit code, verifies.
-- New module pages: `/onedrive`, `/exchange`, `/teams`, `/content-search`, `/reports/scheduled`.
-- Sidebar refreshed — "soon" / "preview" badges removed for newly-active pages; only "off" stays for content-search + remediation.
-- `lib/demoData.ts`: fixtures for `DEMO_GRAPH_SETTINGS`, `DEMO_ONEDRIVE`, `DEMO_EXCHANGE`, `DEMO_TEAMS`, `DEMO_CONTENT_SEARCH_PATTERNS`, `DEMO_SCHEDULED_REPORTS`, `DEMO_TENANT_ID`.
-- `npm run typecheck` passes locally.
+- `TotpEnroll` renders the QR inline.
+- `Settings → Graph` has a working "Test connection" button hitting
+  `serviceHealth.snapshot`.
+- `middleware.ts` sets a `tg365_demo=1` cookie when `?demo=1` is in the URL
+  so sidebar Links no longer have to propagate the param.
 
-## What is still pending
+### Phase 26 — MUI-X DataGrid, Cypress, system health, settings framework, full audit
 
-1. **CI verify** — push hasn't happened yet. Next session: `git push` and watch run.
-2. **Sign-in flow for local+TOTP** — backend endpoint `POST /auth/login/local` needs implementing. Schema is ready; UI just shows enrollment, not the login challenge. ~50 lines in `app/api/auth_routes.py`.
-3. **TOTP rate-limiting** — currently uses the global rate limiter. Verify code endpoint should have a tighter bucket (e.g. 5/min per user) to defeat brute force. Add to `app/rate_limit.py` exclusion list as a *tighter* limit, not a looser one.
-4. **Real token provider integration** — `build_token_provider` still reads from env, not from `tenant_graph_settings`. Wire it: prefer DB row, fall back to env. ~20 lines in `app/graph/token_provider.py`.
-5. **Connection test button** — Settings → Graph form should have a "Test connection" action that hits `/api/tenants/{id}/collectors/serviceHealth.snapshot/run` and reports result. UI button exists path-wise; endpoint already exists. Just wire the click.
-6. **QR code render** — `TotpEnroll` shows the `otpauth://` URI as text. Should render a QR. `qrcode` Python lib is installed; add `POST /api/settings/users/{id}/totp/enroll` to optionally return `qr_svg_base64`. Or render client-side with a tiny lib like `qrcode-generator`.
-7. **Sidebar demo-mode link preservation** — sidebar Links don't carry `?demo=1`. AppShell could accept a `demo` flag and rewrite hrefs. Right now demo users must re-add `?demo=1` after navigating via sidebar (cookie path works too — set cookie once, no need for query).
+**Frontend (8 new pages + 1 rewrite)**
+- `@mui/x-data-grid@7` + `@mui/material@6` + emotion. Wrapper at
+  `components/data-grid/TgDataGrid.tsx` with a dark theme provider.
+- Rewrites: `/audit` (DataGrid).
+- New: `/entra/users`, `/sharepoint/permissions`, `/system-health`,
+  `/settings/general`, `/settings/security`, `/settings/retention`,
+  `/settings/notifications`.
+- Sidebar surfaces the new sub-pages.
+
+**Backend**
+- `GET /api/system/health` (admin-only) — aggregates DB / Redis /
+  OpenSearch / MinIO health plus recent `GraphSyncJobRun` stats.
+
+**Tests**
+- Cypress installed (`devDependencies`). `cypress.config.ts` + 8 smoke
+  specs in `cypress/e2e/smoke.cy.ts`. `npm run e2e` to run.
+
+**Docs**
+- `docs/security/vulnerability-analysis.md`
+- `docs/operations/performance-efficiency-analysis.md`
+- `docs/operations/full-platform-verification-report.md`
+- `docs/admin/user-management.md`
+- `docs/admin/settings.md`
+
+## What is still pending (highest value first)
+
+1. **CSP + Permissions-Policy headers** — `apps/api/app/main.py`
+   `request_id_and_security_headers` middleware. Add a nonce-based CSP
+   compatible with Next.js inline scripts.
+2. **Privilege-escalation guard** — `POST /api/settings/users` lets a
+   caller with `platform.users.manage` assign any role, including
+   `super_admin`. Reject assignments at or above the caller's ceiling.
+3. **DB-backed versions of the four settings framework pages** — General,
+   Security, Retention, Notifications. Need a `tg365_site_settings`
+   singleton + a `retention_policy` table + an SMTP/webhook config table.
+4. **Account-lockout** after N TOTP failures (additive to the rate limit).
+5. **Append-only DB role on `technician_audit_log`** — Postgres RLS / role
+   that lacks UPDATE/DELETE.
+6. **Stuck-run reaper + cancel** for `GraphSyncJobRun` rows left in
+   `running`. Add `cancel_requested_at` column.
+7. **OpenTelemetry init** — settings already expose
+   `OTEL_EXPORTER_OTLP_ENDPOINT`; wire the SDK in `main.py`.
+8. **Brotli** middleware on the `/api/reports/*/export` paths.
+9. **Cypress run in CI** — the harness is installed; add a job that
+   `npm run build && next start &` then `npm run e2e`.
 
 ## Quick start next session
 
 ```bash
 cd C:\tenantguard365
-git status                    # confirm pending changes still listed
-git add -A
-git commit -m "feat(phase-24): admin settings + TOTP 2FA + new admin provisioning"
-git push
-# watch:
-gh run watch $(gh run list --limit 1 --json databaseId -q '.[0].databaseId') --interval 25 --exit-status
+git pull
+docker compose up -d --build
+# Visit http://localhost:3000?demo=1 to bootstrap the demo cookie.
+# Visit http://localhost:3000/audit, /entra/users, /sharepoint/permissions,
+# /system-health, /settings to verify the new pages render.
+
+# Smoke tests:
+cd apps/web
+npm run dev &
+npx wait-on http://localhost:3000
+npm run e2e
 ```
 
-If CI fails, expected hotspots:
-- ruff: import order in new files. Run `ruff check app` locally.
-- mypy: TOTP module uses `pyotp` (no stubs); add `# type: ignore[import-untyped]` on the `import pyotp` line if mypy complains. Same for `qrcode`.
-- web build: should pass — typecheck already clean.
+If CI fails, expected hotspots are noted in the vulnerability + performance
+docs.
 
 ## Numbers as of this commit
 
-- 24 phases shipped
-- 11 collectors · 16 reports · 5+3 security rules · 5 remediation policies (all off) · 5 SI patterns
-- 56 Postgres tables (54 + totps + tenant_graph_settings)
-- New API endpoints: 6 (`/api/settings/*`)
-- Web pages: 17 → ~24 (settings index, graph form, users list/new/totp, onedrive, exchange, teams, content-search, scheduled reports)
+- 26 phases shipped.
+- 11 collectors · 16 reports · 8 security rules · 5 remediation policies
+  (all off) · 5 SI patterns.
+- 57 Postgres tables.
+- ~24 frontend pages live (including the 8 added this phase).
+- ~6 new API endpoints since the Phase 24 cut.
 
 ## Known limitations to mention to user next session
 
-- **Docker daemon was down** during this session, so the backend wasn't smoke-tested live. All work is type-checked + CI lint/test green (after next push).
-- Preview tool's browser swallows cookies on SSR fetch — workaround is `?demo=1` URL fallback. Real Chrome / production works fine.
-- TOTP verify endpoint will reject the *first* code generated by an authenticator during the same 30-second window the URI was created — that's expected; just wait for the next step.
+- Cypress smoke suite installed but **not executed in this autonomous
+  run** — no dev server was started. Run locally before merging anything
+  else.
+- The four "framework" settings pages are read-only scaffolds. They show
+  the effective defaults so they're useful to operators, but submit/save
+  is intentionally disabled until the backing tables ship.
+- `/entra/users` and `/sharepoint/permissions` only have data in demo
+  mode. Real Graph data needs the corresponding collector to run; the
+  pages will appear empty otherwise with a clear "configure Graph" hint.
