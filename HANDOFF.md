@@ -5,10 +5,32 @@ Concise state-of-the-world for the next session. Read this first.
 ## Repo
 
 - `C:\tenantguard365` · github.com/Diederiki/TenantGuard-365 · branch `main`
-- Last green CI commit: `40d81ab` (Phase 26).
+- Last green CI commit: `274ce1a` (Phase 27). All 5 CI jobs (api, worker,
+  web, compose, cypress) green.
 - All work is pushed.
 
-## What just landed (Phases 25 + 26)
+## What just landed (Phases 25 + 26 + 27)
+
+### Phase 27 — security headers, role-ceiling guard, account lockout, Cypress CI
+
+**Security**
+- Full Content-Security-Policy on the web (`next.config.mjs`) and a
+  JSON-only CSP on the API (`main.py`). Both apps now also set the
+  expanded Permissions-Policy, COOP, CORP, and HSTS.
+- Privilege-escalation guard on `POST /api/settings/users`. Caller
+  cannot grant a role whose permission set is not a subset of their own
+  (`platform.admin` bypass intentional).
+- Account lockout on local login. Redis-backed; 10 fails → 15 min lock;
+  returns 423 `account_locked`. Counter clears on success.
+
+**Tests**
+- Demo-mode short-circuit in `lib/api.ts` so every page renders without
+  a live API when the `tg365_demo=1` cookie is set.
+- /settings/graph now mounts the GraphForm (Save + Test connection).
+- Cypress smoke suite ran locally — 8 / 8 pass.
+- New CI job `web · cypress smokes`: builds, runs `next start`, runs the
+  spec headless in Electron, uploads screenshots on failure. **Passing.**
+
 
 ### Phase 25 — local auth + TOTP challenge + token-provider DB-first
 
@@ -58,27 +80,23 @@ Concise state-of-the-world for the next session. Read this first.
 - `docs/admin/user-management.md`
 - `docs/admin/settings.md`
 
-## What is still pending (highest value first)
+## What is still pending (Phase 28 queue, highest value first)
 
-1. **CSP + Permissions-Policy headers** — `apps/api/app/main.py`
-   `request_id_and_security_headers` middleware. Add a nonce-based CSP
-   compatible with Next.js inline scripts.
-2. **Privilege-escalation guard** — `POST /api/settings/users` lets a
-   caller with `platform.users.manage` assign any role, including
-   `super_admin`. Reject assignments at or above the caller's ceiling.
-3. **DB-backed versions of the four settings framework pages** — General,
+1. **Nonce-based CSP** — drop `'unsafe-inline'` from script-src + style-src
+   via Next middleware injecting a per-request nonce.
+2. **DB-backed versions of the four settings framework pages** — General,
    Security, Retention, Notifications. Need a `tg365_site_settings`
    singleton + a `retention_policy` table + an SMTP/webhook config table.
-4. **Account-lockout** after N TOTP failures (additive to the rate limit).
-5. **Append-only DB role on `technician_audit_log`** — Postgres RLS / role
+3. **Append-only DB role on `technician_audit_log`** — Postgres RLS / role
    that lacks UPDATE/DELETE.
-6. **Stuck-run reaper + cancel** for `GraphSyncJobRun` rows left in
+4. **Stuck-run reaper + cancel** for `GraphSyncJobRun` rows left in
    `running`. Add `cancel_requested_at` column.
-7. **OpenTelemetry init** — settings already expose
+5. **OpenTelemetry init** — settings already expose
    `OTEL_EXPORTER_OTLP_ENDPOINT`; wire the SDK in `main.py`.
-8. **Brotli** middleware on the `/api/reports/*/export` paths.
-9. **Cypress run in CI** — the harness is installed; add a job that
-   `npm run build && next start &` then `npm run e2e`.
+6. **Brotli** middleware on the `/api/reports/*/export` paths.
+7. **Password-strength + breached-password check** on
+   `set_user_password`. Use zxcvbn + Pwned Passwords k-anonymity API.
+8. **Dependabot / pip-audit** in CI.
 
 ## Quick start next session
 
@@ -102,7 +120,7 @@ docs.
 
 ## Numbers as of this commit
 
-- 26 phases shipped.
+- 27 phases shipped.
 - 11 collectors · 16 reports · 8 security rules · 5 remediation policies
   (all off) · 5 SI patterns.
 - 57 Postgres tables.
@@ -111,12 +129,12 @@ docs.
 
 ## Known limitations to mention to user next session
 
-- Cypress smoke suite installed but **not executed in this autonomous
-  run** — no dev server was started. Run locally before merging anything
-  else.
+- Cypress smoke suite **8 / 8 green** locally + in CI.
 - The four "framework" settings pages are read-only scaffolds. They show
   the effective defaults so they're useful to operators, but submit/save
   is intentionally disabled until the backing tables ship.
 - `/entra/users` and `/sharepoint/permissions` only have data in demo
   mode. Real Graph data needs the corresponding collector to run; the
   pages will appear empty otherwise with a clear "configure Graph" hint.
+- CSP still allows `'unsafe-inline'` for scripts and styles. Required by
+  Next.js hydration JSON + MUI emotion. Phase 28 swaps in a nonce policy.
