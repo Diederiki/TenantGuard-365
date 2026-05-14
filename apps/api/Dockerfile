@@ -3,7 +3,7 @@
 # Multi-stage build: install deps in builder, copy runtime artefacts.
 # =============================================================================
 
-FROM python:3.12-slim-bookworm AS base
+FROM python:3.14-slim-bookworm AS base
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
