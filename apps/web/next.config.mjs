@@ -36,6 +36,23 @@ const nextConfig = {
   experimental: {
     instrumentationHook: false,
   },
+  // Same-origin proxy for the API so browser cookies + CSP stay simple.
+  // /api/*   → API container's /api/*
+  // /auth/*  → API container's /auth/*
+  // /healthz → API container's /healthz
+  // The upstream URL is taken from API_PROXY_URL (server-side env) so it
+  // can differ in dev (http://api:8000) vs. behind a real reverse proxy
+  // (https://api.example.com).
+  async rewrites() {
+    const upstream = process.env.API_PROXY_URL || "http://api:8000";
+    return [
+      { source: "/api/:path*", destination: `${upstream}/api/:path*` },
+      { source: "/auth/:path*", destination: `${upstream}/auth/:path*` },
+      { source: "/healthz", destination: `${upstream}/healthz` },
+      { source: "/readyz", destination: `${upstream}/readyz` },
+    ];
+  },
+
   async headers() {
     return [
       {
