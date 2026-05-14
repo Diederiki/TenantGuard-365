@@ -9,7 +9,9 @@ import {
   CardHeader,
   CardTitle,
 } from "../../../components/ui/card";
-import { fetchMe } from "../../../lib/api";
+import { apiBaseUrl, fetchMe } from "../../../lib/api";
+import { DEMO_GRAPH_SETTINGS, DEMO_TENANT_ID, isDemoCookie } from "../../../lib/demoData";
+import { GraphForm } from "./GraphForm";
 
 export const dynamic = "force-dynamic";
 
@@ -36,6 +38,34 @@ export default async function GraphConnectionPage() {
   const cookie = (await headers()).get("cookie") ?? "";
   const me = await fetchMe(cookie);
   if (!me) redirect("/sign-in");
+  const demo = isDemoCookie(cookie);
+
+  let tenantId = DEMO_TENANT_ID;
+  let initial = DEMO_GRAPH_SETTINGS;
+  if (!demo) {
+    try {
+      const base = apiBaseUrl({ serverSide: true });
+      const r = await fetch(`${base}/api/tenants`, {
+        headers: { cookie },
+        cache: "no-store",
+      });
+      if (r.ok) {
+        const list = (await r.json()) as Array<{ id: string }>;
+        if (list.length > 0) {
+          tenantId = list[0].id;
+          const sr = await fetch(`${base}/api/settings/graph/${tenantId}`, {
+            headers: { cookie },
+            cache: "no-store",
+          });
+          if (sr.ok) {
+            initial = (await sr.json()) as typeof DEMO_GRAPH_SETTINGS;
+          }
+        }
+      }
+    } catch {
+      // Fall back to demo fixture so the form still renders.
+    }
+  }
 
   return (
     <AppShell me={me} currentPath="/settings/graph">
@@ -112,6 +142,19 @@ ENTRA_CLIENT_ID=<collector-app-client-id>
 ENTRA_CLIENT_SECRET=<collector-secret>   # or cert path
 TOKEN_CACHE_MASTER_KEY=<32+ byte random>`}
               </pre>
+            </CardContent>
+          </Card>
+
+          <Card className="lg:col-span-2">
+            <CardHeader>
+              <CardTitle>Step 4 — Save tenant Graph settings</CardTitle>
+              <CardDescription>
+                Persists app-registration IDs + secrets per tenant. Secrets are
+                AES-GCM-sealed before write. Use Test connection to verify.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <GraphForm tenantId={tenantId} initial={initial} demo={demo} />
             </CardContent>
           </Card>
         </div>

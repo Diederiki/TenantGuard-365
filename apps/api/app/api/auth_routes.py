@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 
+import redis
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response, status
 from itsdangerous import BadSignature, URLSafeSerializer
 from pydantic import BaseModel
@@ -24,6 +25,61 @@ logger = logging.getLogger("tg365.api.auth")
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 _PENDING_COOKIE = "tg365_pending_auth"
+
+# Account-level lockout. Redis-backed: every failed local login or TOTP
+# verify increments the counter; once it crosses the threshold the account
+# is locked for LOCKOUT_SECONDS. Successful login resets the counter.
+LOCKOUT_THRESHOLD = 10
+LOCKOUT_SECONDS = 15 * 60
+
+
+def _lockout_key(user_id: str) -> str:
+    return f"tg365:auth:lockout:{user_id}"
+
+
+def _fail_key(user_id: str) -> str:
+    return f"tg365:auth:fails:{user_id}"
+
+
+def _redis() -> "redis.Redis":
+    return redis.from_url(  # type: ignore[no-untyped-call]
+        get_settings().redis_url,
+        socket_timeout=1.0,
+        socket_connect_timeout=1.0,
+    )
+
+
+def _is_locked(user_id: str) -> bool:
+    try:
+        return bool(_redis().get(_lockout_key(user_id)))
+    except Exception:
+        return False  # fail open if Redis is down
+
+
+def _record_failure(user_id: str) -> int:
+    """Increment the failure counter; lock the account if threshold crossed.
+
+    Returns the current failure count.
+    """
+    try:
+        r = _redis()
+        count = int(r.incr(_fail_key(user_id)) or 0)
+        if count == 1:
+            r.expire(_fail_key(user_id), LOCKOUT_SECONDS)
+        if count >= LOCKOUT_THRESHOLD:
+            r.set(_lockout_key(user_id), "1", ex=LOCKOUT_SECONDS)
+        return count
+    except Exception as exc:
+        logger.warning("auth.lockout.redis_unavailable", extra={"err": str(exc)})
+        return 0
+
+
+def _clear_failures(user_id: str) -> None:
+    try:
+        r = _redis()
+        r.delete(_fail_key(user_id), _lockout_key(user_id))
+    except Exception:
+        pass
 
 
 def _pending_serializer() -> URLSafeSerializer:
@@ -244,8 +300,13 @@ def login_local(
     password_ok = verify_password(body.password, user_hash)
 
     if user is None or not password_ok:
+        if user is not None:
+            _record_failure(str(user.id))
         _audit_failed_login(db, request, email, "invalid_credentials", getattr(user, "id", None))
         raise HTTPException(status_code=401, detail="invalid_credentials")
+    if _is_locked(str(user.id)):
+        _audit_failed_login(db, request, email, "account_locked", user.id)
+        raise HTTPException(status_code=423, detail="account_locked")
     if not user.is_active:
         _audit_failed_login(db, request, email, "user_inactive", user.id)
         raise HTTPException(status_code=403, detail="user_inactive")
@@ -266,8 +327,12 @@ def login_local(
             _audit_failed_login(db, request, email, "totp_required", user.id)
             raise HTTPException(status_code=401, detail="totp_required")
         if not totp_auth.verify(db, user, body.code):
+            _record_failure(str(user.id))
             _audit_failed_login(db, request, email, "totp_invalid", user.id)
             raise HTTPException(status_code=401, detail="totp_invalid")
+
+    # Success — reset lockout state.
+    _clear_failures(str(user.id))
 
     sid, _data = get_session_store().create(
         user_id=user.id,

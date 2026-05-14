@@ -41,6 +41,12 @@ export type AuditPage = {
 };
 
 export async function fetchMe(cookieHeader: string): Promise<MeResponse | null> {
+  // Demo mode short-circuit so the whole app is browsable without an API.
+  // Lazy import to keep this module client/server safe.
+  if (/(?:^|; )tg365_demo=1\b/.test(cookieHeader)) {
+    const { DEMO_ME } = await import("./demoData");
+    return DEMO_ME;
+  }
   const base = apiBaseUrl({ serverSide: true });
   try {
     const r = await fetch(`${base}/api/me`, {
@@ -59,6 +65,10 @@ export async function fetchAudit(
   cookieHeader: string,
   opts: { limit?: number; beforeId?: number } = {},
 ): Promise<AuditPage | { error: string }> {
+  if (/(?:^|; )tg365_demo=1\b/.test(cookieHeader)) {
+    const { DEMO_AUDIT } = await import("./demoData");
+    return DEMO_AUDIT;
+  }
   const base = apiBaseUrl({ serverSide: true });
   const params = new URLSearchParams();
   params.set("limit", String(opts.limit ?? 50));

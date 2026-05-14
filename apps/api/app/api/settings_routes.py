@@ -16,14 +16,28 @@ from app.auth import totp as totp_auth
 from app.auth.dependencies import AuthedUser, require
 from app.auth.passwords import hash_password
 from app.db.models import (
+    PlatformPermission,
     PlatformRole,
     PlatformRoleAssignment,
+    PlatformRolePermission,
     PlatformUser,
     Tenant,
     TenantGraphSettings,
 )
 from app.db.models.tenant_settings import wrap_app_secret
 from app.db.session import db_session
+
+
+def _role_permission_keys(db: Session, role_id: uuid.UUID) -> set[str]:
+    rows = db.execute(
+        select(PlatformPermission.key)
+        .join(
+            PlatformRolePermission,
+            PlatformRolePermission.permission_id == PlatformPermission.id,
+        )
+        .where(PlatformRolePermission.role_id == role_id)
+    ).all()
+    return {r[0] for r in rows}
 
 router = APIRouter(prefix="/api/settings", tags=["settings"])
 
@@ -173,6 +187,27 @@ def create_user(
     if existing is not None:
         raise HTTPException(status_code=409, detail="user_email_exists")
 
+    # Privilege-escalation guard: caller cannot grant a role whose permission
+    # set is not a subset of their own. This prevents a platform.users.manage
+    # holder from minting a super admin.
+    caller_perms = set(authed.permissions)
+    requested_roles: list[PlatformRole] = []
+    for role_key in body.role_keys:
+        role = db.scalar(select(PlatformRole).where(PlatformRole.key == role_key))
+        if role is None:
+            continue
+        role_perms = _role_permission_keys(db, role.id)
+        # Caller with platform.admin (god) is allowed to assign anything.
+        if P.PLATFORM_ADMIN in caller_perms:
+            requested_roles.append(role)
+            continue
+        if not role_perms.issubset(caller_perms):
+            raise HTTPException(
+                status_code=403,
+                detail=f"cannot_grant_higher_role:{role_key}",
+            )
+        requested_roles.append(role)
+
     user = PlatformUser(
         email=body.email.lower(),
         display_name=body.display_name,
@@ -185,12 +220,9 @@ def create_user(
     db.flush()
 
     granted_roles: list[str] = []
-    for role_key in body.role_keys:
-        role = db.scalar(select(PlatformRole).where(PlatformRole.key == role_key))
-        if role is None:
-            continue
+    for role in requested_roles:
         db.add(PlatformRoleAssignment(user_id=user.id, role_id=role.id, scope=""))
-        granted_roles.append(role_key)
+        granted_roles.append(role.key)
 
     AuditLogger(db).log(
         AuditContext(actor_id=authed.user.id, actor_display=authed.user.display_name),
