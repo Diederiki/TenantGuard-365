@@ -188,8 +188,8 @@ def create_user(
         raise HTTPException(status_code=409, detail="user_email_exists")
 
     # Privilege-escalation guard: caller cannot grant a role whose permission
-    # set is not a subset of their own. This prevents a platform.users.manage
-    # holder from minting a super admin.
+    # set is not a subset of their own. The helper bypasses for
+    # platform.admin holders (intentional super-admin escape hatch).
     caller_perms = set(authed.permissions)
     requested_roles: list[PlatformRole] = []
     for role_key in body.role_keys:
@@ -197,11 +197,7 @@ def create_user(
         if role is None:
             continue
         role_perms = _role_permission_keys(db, role.id)
-        # Caller with platform.admin (god) is allowed to assign anything.
-        if P.PLATFORM_ADMIN in caller_perms:
-            requested_roles.append(role)
-            continue
-        if not role_perms.issubset(caller_perms):
+        if not P.caller_can_grant_role(caller_perms, role_perms):
             raise HTTPException(
                 status_code=403,
                 detail=f"cannot_grant_higher_role:{role_key}",

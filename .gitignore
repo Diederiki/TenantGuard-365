@@ -95,6 +95,6 @@ test-results/
 docker-compose.override.yml
 docker-compose.override.yaml
 
-# Exports / reports generated locally
-exports/
-reports/output/
+# Exports / reports generated locally (root only — keep web app routes)
+/exports/
+/reports/output/

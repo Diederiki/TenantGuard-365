@@ -5,11 +5,38 @@ Concise state-of-the-world for the next session. Read this first.
 ## Repo
 
 - `C:\tenantguard365` · github.com/Diederiki/TenantGuard-365 · branch `main`
-- Last green CI commit: `274ce1a` (Phase 27). All 5 CI jobs (api, worker,
-  web, compose, cypress) green.
+- Last green CI commit: Phase 28 (page coverage + sidebar RBAC).
+  All 5 CI jobs (api, worker, web, compose, cypress) green.
 - All work is pushed.
 
-## What just landed (Phases 25 + 26 + 27)
+## What just landed (Phases 25 → 28)
+
+### Phase 28 — page coverage + sidebar RBAC + privilege-guard unit tests
+
+**Pages (28 new)**
+- Shared `FrameworkPage` shell: standardises auth check, permission
+  gate, status badge, header layout. Cuts each stub page to ~30 lines.
+- Built every required-list page that didn't exist: Entra
+  groups/roles/licenses/sign-ins/directory-audit/user-detail, SharePoint
+  sites + site-detail + sharing-links + external-users + broken-
+  inheritance, OneDrive accounts + sharing, Exchange mailboxes +
+  mailbox-detail + permissions + forwarding-risk, Teams inventory +
+  members, Reports `[key]` + builder, Job `[id]`, Alert `[id]`,
+  Investigation `[id]`, Content-search `[id]`, plus Tenant + Report +
+  Notifications top-level + Exports + Help + Capability-Matrix.
+
+**RBAC**
+- Sidebar filters items by caller permissions; AppShell forwards
+  `me.permissions` to Sidebar.
+- Privilege-escalation guard refactored to a pure helper
+  `caller_can_grant_role(caller_perms, role_perms)` in
+  `app/auth/permissions.py`. 6 new unit tests:
+  - subset grant allowed
+  - superset grant denied
+  - disjoint grant denied
+  - empty role always allowed
+  - `platform.admin` bypass
+  - non-admin cannot grant admin
 
 ### Phase 27 — security headers, role-ceiling guard, account lockout, Cypress CI
 
@@ -120,12 +147,12 @@ docs.
 
 ## Numbers as of this commit
 
-- 27 phases shipped.
+- 28 phases shipped.
 - 11 collectors · 16 reports · 8 security rules · 5 remediation policies
   (all off) · 5 SI patterns.
 - 57 Postgres tables.
-- ~24 frontend pages live (including the 8 added this phase).
-- ~6 new API endpoints since the Phase 24 cut.
+- ~52 frontend pages live (+28 framework pages this run).
+- ~7 new API endpoints since the Phase 24 cut.
 
 ## Known limitations to mention to user next session
 

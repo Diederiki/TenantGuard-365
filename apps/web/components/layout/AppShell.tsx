@@ -8,14 +8,14 @@ export async function AppShell({
   currentPath,
   children,
 }: {
-  me: { display_name: string; email: string; role_keys: string[] };
+  me: { display_name: string; email: string; role_keys: string[]; permissions?: string[] };
   currentPath: string;
   children: React.ReactNode;
 }) {
   void headers;
   return (
     <div className="flex min-h-screen">
-      <Sidebar currentPath={currentPath} />
+      <Sidebar currentPath={currentPath} permissions={me.permissions ?? []} />
       <div className="flex-1">
         <header className="border-b border-slate-800/80 bg-slate-950/60 px-6 py-3">
           <div className="flex items-center justify-between">

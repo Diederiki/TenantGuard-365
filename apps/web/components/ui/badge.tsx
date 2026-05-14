@@ -2,7 +2,15 @@ import * as React from "react";
 
 import { cn } from "../../lib/utils";
 
-type Variant = "default" | "info" | "attention" | "trouble" | "critical" | "muted";
+export type BadgeVariant =
+  | "default"
+  | "info"
+  | "attention"
+  | "trouble"
+  | "critical"
+  | "muted";
+
+type Variant = BadgeVariant;
 
 const styles: Record<Variant, string> = {
   default: "bg-slate-800 text-slate-200 border-slate-700",

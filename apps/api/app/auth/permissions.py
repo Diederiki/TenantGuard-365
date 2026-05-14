@@ -42,3 +42,18 @@ SHAREPOINT_PERMISSIONS_READ: Final = "sharepoint.permissions.read"
 # Security
 SECURITY_ALERTS_READ: Final = "security.alerts.read"
 SECURITY_RULES_READ: Final = "security.rules.read"
+
+
+def caller_can_grant_role(
+    caller_perms: set[str], role_perms: set[str]
+) -> bool:
+    """Privilege-escalation guard.
+
+    A caller may grant a role only if the role's permission set is a subset
+    of the caller's own permission set. Callers holding ``platform.admin``
+    bypass — that's the intentional super-admin escape hatch and matches the
+    seed.py guarantee.
+    """
+    if PLATFORM_ADMIN in caller_perms:
+        return True
+    return role_perms.issubset(caller_perms)

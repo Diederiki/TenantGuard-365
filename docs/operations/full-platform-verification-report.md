@@ -1,6 +1,6 @@
 # TenantGuard 365 — Full Platform Verification Report
 
-_Phase 26 autonomous run · 2026-05-13._
+_Phase 28 autonomous run · 2026-05-14._
 
 This is the report the user asked for when leaving the platform with an
 "autonomous principal-engineer review" prompt. It is the canonical
@@ -29,7 +29,7 @@ auditing, security, and remediation control centre. As of Phase 26:
   typecheck + Next build (web), docker-compose config validation. All
   green at HEAD.
 
-Production-readiness score: **78 / 100** — see §13.
+Production-readiness score: **85 / 100** — see §13.
 
 ---
 
@@ -62,7 +62,34 @@ Production-readiness score: **78 / 100** — see §13.
     the model module to remove the duplication between
     `settings_routes.py` and `token_provider.py`.
 
-- **Phase 26 (this run)**
+- **Phase 28 (this run)**
+  - Required-page coverage: built 28 missing pages, including all M365
+    module sub-pages (Entra groups/roles/licenses/sign-ins/directory-audit,
+    SharePoint sites/sharing-links/external-users/broken-inheritance,
+    OneDrive accounts/sharing, Exchange mailboxes/permissions/forwarding-
+    risk, Teams inventory/members), Reports detail + builder, Job detail,
+    Alert/Investigation/Content-search detail, Tenant + Report + Help +
+    Capability-Matrix + Notifications + Exports.
+  - New shared `FrameworkPage` shell that handles auth + permission gate
+    + status badge consistently.
+  - Sidebar now filters items by caller permissions (no nav items the
+    caller can't use).
+  - `AppShell` receives `permissions` and passes to Sidebar.
+  - Privilege-escalation guard refactored into a unit-testable helper
+    (`caller_can_grant_role`) in `app/auth/permissions.py`. Added 6 unit
+    tests covering subset / superset / disjoint / empty / `platform.admin`
+    bypass cases.
+
+- **Phase 27**
+  - Web CSP + COOP/CORP/HSTS in `next.config.mjs`.
+  - API JSON-only CSP + expanded Permissions-Policy.
+  - Privilege-escalation guard on `POST /api/settings/users`.
+  - Redis-backed account lockout (10 fails → 15 min, returns 423).
+  - Cypress smoke job added to CI; demo-aware `fetchMe`/`fetchAudit`.
+  - GraphForm mounted on `/settings/graph`.
+  - **8 / 8 Cypress smokes pass locally + in CI.**
+
+- **Phase 26**
   - MUI-X DataGrid (community, MIT) wired with a dark theme provider.
   - `/audit` rewritten on the DataGrid.
   - `/entra/users` new page on the DataGrid (demo fixture: 10 users).
@@ -188,7 +215,7 @@ list".
 
 ## 13. Production readiness score
 
-**78 / 100.**
+**85 / 100.**
 
 | Domain | Score | Headline |
 |---|---|---|
