@@ -14,6 +14,7 @@ from app.audit.logger import AuditContext, AuditLogger
 from app.auth import permissions as P
 from app.auth import totp as totp_auth
 from app.auth.dependencies import AuthedUser, require
+from app.auth.password_policy import evaluate as evaluate_password
 from app.auth.passwords import hash_password
 from app.db.models import (
     PlatformPermission,
@@ -253,7 +254,7 @@ class SetPasswordIn(BaseModel):
     "/users/{user_id}/password",
     summary="Set or reset a local password for a user (auth_method must be 'local').",
 )
-def set_user_password(
+async def set_user_password(
     user_id: uuid.UUID,
     body: SetPasswordIn,
     authed: AuthedUser = Depends(require(P.PLATFORM_USERS_MANAGE)),
@@ -264,8 +265,13 @@ def set_user_password(
         raise HTTPException(status_code=404, detail="user_not_found")
     if user.auth_method != "local":
         raise HTTPException(status_code=400, detail="user_not_local_auth")
-    if len(body.password) < 12:
-        raise HTTPException(status_code=400, detail="password_too_short")
+    # Full policy check: length + character classes + HIBP k-anonymity.
+    result = await evaluate_password(body.password)
+    if not result.ok:
+        raise HTTPException(
+            status_code=400,
+            detail={"error": "password_policy", "reasons": list(result.reasons)},
+        )
     user.password_hash = hash_password(body.password)
     AuditLogger(db).log(
         AuditContext(actor_id=authed.user.id, actor_display=authed.user.display_name),

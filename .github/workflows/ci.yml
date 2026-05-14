@@ -74,6 +74,24 @@ jobs:
         env:
           NEXT_TELEMETRY_DISABLED: "1"
 
+  pip_audit:
+    name: pip-audit · CVE scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install pip-audit
+        run: python -m pip install --upgrade pip pip-audit
+      # Don't fail the build on CVEs we haven't triaged yet — surface them
+      # as a warning so we can update the requirements pin in a follow-up
+      # PR. Promote to a hard fail in Phase 32.
+      - name: api requirements
+        run: pip-audit -r apps/api/requirements.txt --strict || true
+      - name: worker requirements
+        run: pip-audit -r apps/worker/requirements.txt --strict || true
+
   compose:
     name: compose · config validates
     runs-on: ubuntu-latest

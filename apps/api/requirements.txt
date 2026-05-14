@@ -43,3 +43,15 @@ croniter==6.0.0
 pyotp==2.9.0
 qrcode==8.0
 bcrypt==4.2.1
+
+# Compression
+brotli-asgi==1.4.0
+
+# Observability — OpenTelemetry SDK + OTLP exporter + FastAPI/SQLA/HTTPX instrumentations
+opentelemetry-api==1.29.0
+opentelemetry-sdk==1.29.0
+opentelemetry-exporter-otlp-proto-http==1.29.0
+opentelemetry-instrumentation-fastapi==0.50b0
+opentelemetry-instrumentation-sqlalchemy==0.50b0
+opentelemetry-instrumentation-httpx==0.50b0
+opentelemetry-instrumentation-redis==0.50b0

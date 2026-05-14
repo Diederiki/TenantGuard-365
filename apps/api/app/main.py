@@ -64,6 +64,23 @@ def create_app() -> FastAPI:
     # Rate limiting (Redis token-bucket; fail-open if Redis is down).
     rate_limit.install_rate_limit(app)
 
+    # Brotli compression on responses ≥ 1 KB. Cuts ~70% off JSON report
+    # payloads and CSV exports. Browsers + curl negotiate via Accept-Encoding.
+    try:
+        from brotli_asgi import BrotliMiddleware  # type: ignore[import-untyped]
+
+        app.add_middleware(BrotliMiddleware, minimum_size=1024, gzip_fallback=True)
+    except Exception as exc:
+        logger.warning("brotli.middleware_failed", extra={"err": str(exc)})
+
+    # OpenTelemetry — only initialises if OTEL_EXPORTER_OTLP_ENDPOINT is set.
+    try:
+        from app.otel import init_otel
+
+        init_otel(app)
+    except Exception as exc:
+        logger.warning("otel.init_failed", extra={"err": str(exc)})
+
     # CORS — locked down to the configured public URL.
     app.add_middleware(
         CORSMiddleware,
