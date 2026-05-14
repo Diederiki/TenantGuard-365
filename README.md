@@ -39,6 +39,18 @@ See [ROADMAP.md](ROADMAP.md) for the detailed plan.
 - [docs/microsoft-graph/required-permissions.md](docs/microsoft-graph/required-permissions.md) — Required Graph / Purview / Defender permissions
 - [docs/microsoft-graph/app-registration.md](docs/microsoft-graph/app-registration.md) — Entra app registration guide
 - [docs/microsoft-graph/throttling.md](docs/microsoft-graph/throttling.md) — Graph throttling & retry strategy
+- [docs/product/manageengine-feature-parity-matrix.md](docs/product/manageengine-feature-parity-matrix.md) — **Feature parity matrix** (72 entries · live status)
+- [docs/product/tenantguard-feature-roadmap.md](docs/product/tenantguard-feature-roadmap.md) — Phased delivery plan (MVP / P2 / P3 / Future)
+- [docs/product/report-catalog.md](docs/product/report-catalog.md) — Report catalog
+- [docs/product/audit-catalog.md](docs/product/audit-catalog.md) — Audit catalog
+- [docs/product/security-monitoring-catalog.md](docs/product/security-monitoring-catalog.md) — Security monitoring catalog
+- [docs/product/sharepoint-catalog.md](docs/product/sharepoint-catalog.md) — SharePoint capability catalog
+- [docs/product/unsupported-or-needs-validation.md](docs/product/unsupported-or-needs-validation.md) — Honest gap list
+- [docs/operations/full-platform-verification-report.md](docs/operations/full-platform-verification-report.md) — Latest autonomous-run audit
+- [docs/security/vulnerability-analysis.md](docs/security/vulnerability-analysis.md) — Running internal-security review
+- [docs/operations/performance-efficiency-analysis.md](docs/operations/performance-efficiency-analysis.md) — Hot spots + headline wins
+- [docs/admin/user-management.md](docs/admin/user-management.md) — Admin guide: user management
+- [docs/admin/settings.md](docs/admin/settings.md) — Admin guide: settings
 - [docs/security/threat-model.md](docs/security/threat-model.md) — Threat model
 - [docs/security/auth-model.md](docs/security/auth-model.md) — Authentication model
 - [docs/security/rbac.md](docs/security/rbac.md) — Role-based access control

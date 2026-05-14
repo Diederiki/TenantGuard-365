@@ -90,6 +90,7 @@ const groups: { title: string; items: Item[] }[] = [
     items: [
       { href: "/help", label: "Documentation", state: "active" },
       { href: "/capability-matrix", label: "Capability matrix", state: "active" },
+      { href: "/catalog", label: "Feature catalog", state: "active" },
     ],
   },
 ];
