@@ -53,7 +53,9 @@ def test_passes_local_only() -> None:
     assert r.ok, r.reasons
 
 
-def test_async_clean(hibp_clean: None) -> None:  # noqa: ARG001 — fixture activates
+def test_async_clean(hibp_clean: None) -> None:
+    # hibp_clean fixture monkeypatches _hibp_breach_count to return 0.
+    del hibp_clean
     r = _run(pp.evaluate("MyStr0ng-Pass-2026"))
     assert r.ok, r.reasons
 
