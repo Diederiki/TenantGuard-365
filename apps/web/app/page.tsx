@@ -1,69 +1,81 @@
+import {
+  AlertTriangle,
+  BarChart3,
+  Bell,
+  Briefcase,
+  Building2,
+  Gauge,
+  Link2,
+  Mail,
+  Search,
+  Shield,
+  ShieldCheck,
+  Sparkles,
+  Users,
+  Users2,
+} from "lucide-react";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
+import { ActivityFeed } from "../components/feed/ActivityFeed";
 import { AppShell } from "../components/layout/AppShell";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "../components/ui/card";
-import { Badge } from "../components/ui/badge";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
+import { KpiTile } from "../components/ui/KpiTile";
+import { StatusDot } from "../components/ui/StatusDot";
 import { apiBaseUrl, fetchMe, type MeResponse } from "../lib/api";
-import { DEMO_HEALTH, DEMO_ME, isDemoRequest } from "../lib/demoData";
-import { SignOutButton } from "./SignOutButton";
+import {
+  DEMO_HEALTH,
+  DEMO_ME,
+  DEMO_REPORTING_KPIS,
+  isDemoCookie,
+  isDemoRequest,
+  type ReportingKpis,
+} from "../lib/demoData";
 
 export const dynamic = "force-dynamic";
 
-async function fetchHealth(demo: boolean): Promise<{
-  api: { ok: boolean; status: string };
-  ready: { ok: boolean; status: string };
-}> {
+type Health = { api: { ok: boolean; status: string }; ready: { ok: boolean; status: string } };
+
+async function fetchHealth(cookie: string, demo: boolean): Promise<Health> {
   if (demo) return DEMO_HEALTH;
   const base = apiBaseUrl({ serverSide: true });
   try {
     const [h, r] = await Promise.all([
-      fetch(`${base}/healthz`, { cache: "no-store" }),
-      fetch(`${base}/readyz`, { cache: "no-store" }),
+      fetch(`${base}/healthz`, { cache: "no-store", headers: { cookie } }),
+      fetch(`${base}/readyz`, { cache: "no-store", headers: { cookie } }),
     ]);
     return {
       api: { ok: h.ok, status: h.ok ? "ok" : `${h.status}` },
       ready: { ok: r.ok, status: r.ok ? "ok" : "degraded" },
     };
   } catch {
-    return {
-      api: { ok: false, status: "unreachable" },
-      ready: { ok: false, status: "unreachable" },
-    };
+    return { api: { ok: false, status: "unreachable" }, ready: { ok: false, status: "unreachable" } };
   }
 }
 
-const phases = [
-  { n: 0, name: "Project blueprint & feasibility" },
-  { n: 1, name: "Repo bootstrap" },
-  { n: 2, name: "Authentication & RBAC" },
-  { n: 3, name: "Microsoft Graph connection" },
-  { n: 4, name: "Core data collectors" },
-  { n: 5, name: "Dashboard & report engine" },
-  { n: 6, name: "SharePoint deep audit" },
-  { n: 7, name: "Unified audit & security ops" },
-  { n: 8, name: "Content search & investigations" },
-  { n: 9, name: "Remediation framework (off by default)" },
-  { n: 10, name: "Enterprise hardening" },
-  { n: 11, name: "Reports CRUD + export download" },
-  { n: 12, name: "Alerts API + UI" },
-  { n: 13, name: "Tenant connect wizard" },
-  { n: 14, name: "More collectors / rules / reports" },
-  { n: 15, name: "Notifications (email/webhook/Teams)" },
-  { n: 16, name: "Investigations API + UI" },
-  { n: 17, name: "Scheduled-reports executor" },
-  { n: 18, name: "Module pages" },
-  { n: 19, name: "RBAC admin API" },
-  { n: 20, name: "Alerts → notifications hook" },
-  { n: 21, name: "Sign-ins + directory audits collectors" },
-  { n: 22, name: "SharePoint drives collector" },
-  { n: 23, name: "Prompt audit pass — coverage close-out" },
+async function fetchKpis(cookie: string): Promise<{ kpis: ReportingKpis; source: "live" | "demo" }> {
+  if (isDemoCookie(cookie)) return { kpis: DEMO_REPORTING_KPIS, source: "demo" };
+  const base = apiBaseUrl({ serverSide: true });
+  try {
+    const r = await fetch(`${base}/api/reporting/dashboard`, {
+      headers: { cookie },
+      cache: "no-store",
+    });
+    if (r.ok) {
+      const body = (await r.json()) as { kpis: ReportingKpis };
+      return { kpis: body.kpis, source: "live" };
+    }
+  } catch {
+    // fall through
+  }
+  return { kpis: DEMO_REPORTING_KPIS, source: "demo" };
+}
+
+const QUICK_ACTIONS = [
+  { href: "/reporting", label: "Reporting overview", desc: "KPIs + charts", icon: BarChart3, accent: "from-sky-500/20" },
+  { href: "/audit", label: "Audit log", desc: "Every privileged action", icon: Search, accent: "from-violet-500/20" },
+  { href: "/security/alerts", label: "Security alerts", desc: "Open + critical", icon: Shield, accent: "from-rose-500/20" },
+  { href: "/settings/graph", label: "Graph connection", desc: "App registration + test", icon: Sparkles, accent: "from-emerald-500/20" },
 ];
 
 export default async function HomePage({
@@ -83,175 +95,192 @@ export default async function HomePage({
     if (!me) redirect("/sign-in");
   }
 
-  const health = await fetchHealth(demo);
+  const health = await fetchHealth(cookieHeader, demo);
+  const { kpis: k, source } = await fetchKpis(cookieHeader);
+
+  const license_pct = k.licenses_purchased
+    ? Math.round((k.licenses_consumed / k.licenses_purchased) * 100)
+    : 0;
 
   return (
     <AppShell me={me!} currentPath="/">
-      <main className="px-6 py-8">
-        <header className="mb-8 flex items-start justify-between gap-6">
-          <div>
-            <h1 className="text-3xl font-semibold tracking-tight text-slate-50">
-              Overview
-              {demo ? (
-                <span className="ml-3 align-middle">
-                  <Badge variant="attention">DEMO MODE</Badge>
-                </span>
-              ) : null}
-            </h1>
-            <p className="mt-1 max-w-2xl text-sm text-slate-400">
-              Defensive read-first platform for Microsoft 365 reporting, auditing,
-              monitoring, SharePoint visibility, and security operations.
-            </p>
+      <main className="px-6 py-6">
+        {/* Hero */}
+        <section className="relative mb-6 overflow-hidden rounded-3xl border border-slate-800/60 bg-gradient-to-br from-brand-500/15 via-slate-900/40 to-violet-500/10 p-6 ring-1 ring-white/5 shadow-glass">
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(60%_50%_at_20%_0%,rgba(59,130,246,0.18)_0%,transparent_60%),radial-gradient(50%_40%_at_85%_30%,rgba(168,85,247,0.15)_0%,transparent_60%)]" />
+          <div className="relative flex flex-wrap items-end justify-between gap-4">
+            <div>
+              <p className="mb-1 inline-flex items-center gap-2 text-xs uppercase tracking-widest text-brand-300">
+                <Sparkles className="h-3.5 w-3.5" /> Welcome back, {me!.display_name.split(" ")[0]}
+              </p>
+              <h1 className="text-3xl font-semibold tracking-tight text-slate-50">
+                TenantGuard 365 control center
+              </h1>
+              <p className="mt-1 max-w-2xl text-sm text-slate-400">
+                Live posture of your Microsoft 365 tenant. Audits, sharing risk, sign-ins, and
+                license usage in one place.
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="flex items-center gap-2 rounded-xl border border-slate-800/60 bg-slate-900/60 px-3 py-1.5 text-xs text-slate-300 ring-1 ring-white/5">
+                <StatusDot tone={health.ready.ok ? "ok" : "danger"} />
+                {health.ready.ok ? "All systems green" : `Degraded: ${health.ready.status}`}
+              </span>
+              <span className="rounded-xl border border-slate-800/60 bg-slate-900/60 px-3 py-1.5 text-xs text-slate-300 ring-1 ring-white/5">
+                data: <span className={source === "live" ? "text-emerald-300" : "text-slate-400"}>{source}</span>
+              </span>
+            </div>
           </div>
-          <SignOutButton />
-        </header>
-
-        <section className="grid grid-cols-1 gap-4 md:grid-cols-3">
-          <Card>
-            <CardHeader>
-              <CardTitle>Stack health</CardTitle>
-              <CardDescription>API + dependency reachability.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ul className="space-y-1">
-                <li className="flex items-center justify-between">
-                  <span>API</span>
-                  <Badge variant={health.api.ok ? "info" : "critical"}>
-                    {health.api.status}
-                  </Badge>
-                </li>
-                <li className="flex items-center justify-between">
-                  <span>Dependencies</span>
-                  <Badge variant={health.ready.ok ? "info" : "attention"}>
-                    {health.ready.status}
-                  </Badge>
-                </li>
-              </ul>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Your access</CardTitle>
-              <CardDescription>
-                Resolved from your role assignments.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="max-h-40 overflow-y-auto">
-                <ul className="grid grid-cols-1 gap-1">
-                  {me!.permissions.slice(0, 14).map((p) => (
-                    <li key={p} className="font-mono text-xs text-slate-400">
-                      {p}
-                    </li>
-                  ))}
-                  {me!.permissions.length > 14 ? (
-                    <li className="text-xs text-slate-500">
-                      … and {me!.permissions.length - 14} more
-                    </li>
-                  ) : null}
-                </ul>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Defaults</CardTitle>
-              <CardDescription>What this platform does NOT do.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ul className="space-y-1 text-xs text-slate-400">
-                <li>• No remediation by default — opt-in per policy.</li>
-                <li>• No raw content ingestion — content search metadata only.</li>
-                <li>• No password login in production — Entra OIDC.</li>
-                <li>• No Graph writes from request-path code.</li>
-              </ul>
-            </CardContent>
-          </Card>
         </section>
 
-        <section className="mt-8 grid grid-cols-1 gap-4 md:grid-cols-3">
-          <Card>
-            <CardHeader>
-              <CardTitle>Quick links</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ul className="space-y-1.5 text-sm">
-                <li><a className="text-brand-400 hover:underline" href={demo ? "/reports?demo=1" : "/reports"}>Reports</a> — 16 built-in</li>
-                <li><a className="text-brand-400 hover:underline" href={demo ? "/jobs?demo=1" : "/jobs"}>Sync jobs</a> — 11 collectors</li>
-                <li><a className="text-brand-400 hover:underline" href={demo ? "/security/alerts?demo=1" : "/security/alerts"}>Security alerts</a></li>
-                <li><a className="text-brand-400 hover:underline" href={demo ? "/security/rules?demo=1" : "/security/rules"}>Security rules</a> — 5 built-in</li>
-                <li><a className="text-brand-400 hover:underline" href={demo ? "/security/investigations?demo=1" : "/security/investigations"}>Investigations</a></li>
-                <li><a className="text-brand-400 hover:underline" href={demo ? "/remediation?demo=1" : "/remediation"}>Remediation</a> — 5 policies (off)</li>
-              </ul>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Modules</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ul className="space-y-1.5 text-sm">
-                <li><a className="text-brand-400 hover:underline" href={demo ? "/entra?demo=1" : "/entra"}>Entra ID</a></li>
-                <li><a className="text-brand-400 hover:underline" href={demo ? "/sharepoint?demo=1" : "/sharepoint"}>SharePoint Online</a></li>
-                <li><a className="text-brand-400 hover:underline" href={demo ? "/service-health?demo=1" : "/service-health"}>Service health</a></li>
-                <li><a className="text-brand-400 hover:underline" href={demo ? "/audit?demo=1" : "/audit"}>Audit log</a></li>
-                <li><a className="text-brand-400 hover:underline" href={demo ? "/delegation?demo=1" : "/delegation"}>Delegation / RBAC</a></li>
-                <li><a className="text-brand-400 hover:underline" href={demo ? "/settings/graph?demo=1" : "/settings/graph"}>Graph connection</a></li>
-              </ul>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Numbers</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ul className="space-y-1.5 text-sm text-slate-300">
-                <li>Phases shipped: <span className="font-mono text-brand-400">24</span></li>
-                <li>Collectors: <span className="font-mono text-brand-400">11</span></li>
-                <li>Reports: <span className="font-mono text-brand-400">16</span></li>
-                <li>Security rules: <span className="font-mono text-brand-400">5</span></li>
-                <li>Remediation policies: <span className="font-mono text-brand-400">5</span> (off)</li>
-                <li>Sensitive-info patterns: <span className="font-mono text-brand-400">5</span></li>
-                <li>Postgres tables: <span className="font-mono text-brand-400">54</span></li>
-              </ul>
-            </CardContent>
-          </Card>
+        {/* KPI strip */}
+        <section className="mb-6 grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
+          <KpiTile
+            label="Users"
+            value={k.total_users}
+            delta={`${k.active_users_30d} active 30d`}
+            icon={Users}
+            tone="info"
+            href="/entra/users"
+          />
+          <KpiTile
+            label="Guests"
+            value={k.guest_users}
+            icon={Users2}
+            tone={k.guest_users > 50 ? "warn" : "info"}
+            href="/entra/users"
+          />
+          <KpiTile
+            label="Privileged admins"
+            value={k.privileged_admins}
+            icon={ShieldCheck}
+            tone={k.privileged_admins > 5 ? "danger" : "ok"}
+            href="/entra/roles"
+          />
+          <KpiTile
+            label="Licenses"
+            value={`${k.licenses_consumed}/${k.licenses_purchased}`}
+            delta={`${license_pct}% used`}
+            icon={Briefcase}
+            tone={license_pct > 95 ? "danger" : license_pct > 85 ? "warn" : "info"}
+            href="/entra/licenses"
+          />
+          <KpiTile
+            label="SharePoint sites"
+            value={k.sites}
+            icon={Building2}
+            tone="info"
+            href="/sharepoint/sites"
+          />
+          <KpiTile
+            label="Open alerts"
+            value={k.alerts_open}
+            delta={`${k.alerts_critical} critical`}
+            icon={AlertTriangle}
+            tone={k.alerts_critical > 0 ? "danger" : "ok"}
+            href="/security/alerts"
+          />
         </section>
 
-        <section className="mt-8">
-          <Card>
-            <CardHeader>
-              <CardTitle>Phase progress</CardTitle>
-              <CardDescription>24 phases — all shipped.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ol className="grid grid-cols-1 gap-1.5 md:grid-cols-2">
-                {phases.map((p) => (
-                  <li
-                    key={p.n}
-                    className="flex items-center justify-between gap-3 rounded px-2 py-1 hover:bg-slate-900/60"
-                  >
-                    <span className="text-slate-200">
-                      <span className="mr-2 inline-block w-10 font-mono text-xs text-slate-500">
-                        P{String(p.n).padStart(2, "0")}
-                      </span>
-                      {p.name}
+        {/* Risk strip */}
+        <section className="mb-6 grid grid-cols-2 gap-3 md:grid-cols-4">
+          <KpiTile
+            label="Anonymous links"
+            value={k.anonymous_links}
+            icon={Link2}
+            tone={k.anonymous_links > 0 ? "danger" : "ok"}
+            href="/sharepoint/sharing-links"
+          />
+          <KpiTile
+            label="External forwarding"
+            value={k.external_forwarding_rules}
+            icon={Mail}
+            tone={k.external_forwarding_rules > 0 ? "danger" : "ok"}
+            href="/exchange/forwarding-risk"
+          />
+          <KpiTile
+            label="MFA registered"
+            value={`${k.mfa_registered_pct}%`}
+            icon={ShieldCheck}
+            tone={k.mfa_registered_pct < 95 ? "warn" : "ok"}
+            href="/entra/users"
+          />
+          <KpiTile
+            label="Inactive mailboxes"
+            value={k.inactive_mailboxes}
+            icon={Mail}
+            tone={k.inactive_mailboxes > 10 ? "warn" : "info"}
+            href="/exchange/mailboxes"
+          />
+        </section>
+
+        {/* Two-column: activity inbox + quick actions */}
+        <section className="grid grid-cols-1 gap-4 xl:grid-cols-3">
+          <div className="xl:col-span-2">
+            <ActivityFeed cookie={cookieHeader} />
+          </div>
+
+          <div className="space-y-4">
+            <Card variant="glass-1">
+              <CardHeader>
+                <CardTitle>Quick actions</CardTitle>
+                <CardDescription>Jump straight to the most common workflows.</CardDescription>
+              </CardHeader>
+              <CardContent className="grid grid-cols-1 gap-2">
+                {QUICK_ACTIONS.map((q) => {
+                  const Icon = q.icon;
+                  return (
+                    <a
+                      key={q.href}
+                      href={q.href}
+                      className={`group relative overflow-hidden rounded-xl border border-slate-800/60 bg-gradient-to-br ${q.accent} to-transparent p-3 ring-1 ring-white/5 hover:ring-brand-500/40`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="grid h-9 w-9 place-items-center rounded-lg bg-slate-900/60 text-slate-200 ring-1 ring-white/10">
+                          <Icon className="h-4 w-4" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="text-sm font-medium text-slate-100">{q.label}</div>
+                          <div className="text-xs text-slate-400">{q.desc}</div>
+                        </div>
+                        <span className="text-slate-500 group-hover:text-slate-300">→</span>
+                      </div>
+                    </a>
+                  );
+                })}
+              </CardContent>
+            </Card>
+
+            <Card variant="glass">
+              <CardHeader>
+                <CardTitle>Infrastructure</CardTitle>
+                <CardDescription>Live platform dependency status.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-2 text-sm">
+                  <li className="flex items-center justify-between rounded-lg border border-slate-800/60 bg-slate-900/40 px-3 py-2">
+                    <span className="flex items-center gap-2 text-slate-200">
+                      <Gauge className="h-3.5 w-3.5 text-slate-500" /> API health
                     </span>
-                    <Badge variant="info">done</Badge>
+                    <span className="flex items-center gap-2 text-xs text-slate-400">
+                      <StatusDot tone={health.api.ok ? "ok" : "danger"} />
+                      {health.api.status}
+                    </span>
                   </li>
-                ))}
-              </ol>
-            </CardContent>
-          </Card>
+                  <li className="flex items-center justify-between rounded-lg border border-slate-800/60 bg-slate-900/40 px-3 py-2">
+                    <span className="flex items-center gap-2 text-slate-200">
+                      <Bell className="h-3.5 w-3.5 text-slate-500" /> Readiness
+                    </span>
+                    <span className="flex items-center gap-2 text-xs text-slate-400">
+                      <StatusDot tone={health.ready.ok ? "ok" : "warn"} />
+                      {health.ready.status}
+                    </span>
+                  </li>
+                </ul>
+              </CardContent>
+            </Card>
+          </div>
         </section>
-
-        <footer className="mt-10 text-xs text-slate-500">
-          <span className="font-mono">tg365-web 0.1.0</span>
-        </footer>
       </main>
     </AppShell>
   );

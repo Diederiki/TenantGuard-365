@@ -36,8 +36,8 @@ describe("Smoke — demo mode", () => {
 
   it("settings index renders cards", () => {
     cy.visitDemo("/settings");
-    cy.contains(/Settings/i).should("be.visible");
-    cy.contains(/Graph/i).should("be.visible");
+    cy.get("main").contains("Settings").should("be.visible");
+    cy.get("main").contains(/Graph/i).should("be.visible");
   });
 
   it("settings → graph form renders fields", () => {
