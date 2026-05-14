@@ -90,7 +90,7 @@ def main() -> None:
                `MailboxSettings.Read`, `Files.Read.All`, etc.).
             2. Validate the **needs_sharepoint_api_validation** entries
                against a dev tenant. Microsoft has changed sharing-link
-               surface area twice in 2024–2025.
+               surface area twice in 2024-2025.
             3. Schedule a Purview eDiscovery validation pass before
                promoting `security.content_search.*` past framework.
             4. Wire `app.management.*` actions to the real Graph + Exchange
