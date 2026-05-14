@@ -7,23 +7,31 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "cypress:open": "cypress open --e2e --browser chrome",
+    "cypress:run": "cypress run --e2e",
+    "e2e": "cypress run --e2e"
   },
   "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@mui/material": "^6.5.0",
+    "@mui/x-data-grid": "^7.29.13",
+    "@tanstack/react-query": "5.62.7",
+    "@tanstack/react-table": "8.20.6",
+    "clsx": "2.1.1",
     "next": "14.2.20",
     "react": "18.3.1",
     "react-dom": "18.3.1",
-    "clsx": "2.1.1",
-    "tailwind-merge": "2.5.5",
-    "@tanstack/react-query": "5.62.7",
-    "@tanstack/react-table": "8.20.6",
-    "recharts": "2.15.0"
+    "recharts": "2.15.0",
+    "tailwind-merge": "2.5.5"
   },
   "devDependencies": {
     "@types/node": "20.17.10",
     "@types/react": "18.3.17",
     "@types/react-dom": "18.3.5",
     "autoprefixer": "10.4.20",
+    "cypress": "^13.17.0",
     "eslint": "8.57.1",
     "eslint-config-next": "14.2.20",
     "postcss": "8.4.49",

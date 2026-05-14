@@ -28,7 +28,9 @@ const groups: { title: string; items: Item[] }[] = [
     title: "Microsoft 365",
     items: [
       { href: "/entra", label: "Entra ID", state: "preview" },
+      { href: "/entra/users", label: "  ↳ Users", state: "preview" },
       { href: "/sharepoint", label: "SharePoint", state: "preview" },
+      { href: "/sharepoint/permissions", label: "  ↳ Permissions", state: "preview" },
       { href: "/onedrive", label: "OneDrive", state: "soon" },
       { href: "/exchange", label: "Exchange", state: "soon" },
       { href: "/teams", label: "Teams", state: "soon" },
@@ -49,9 +51,10 @@ const groups: { title: string; items: Item[] }[] = [
     title: "Admin",
     items: [
       { href: "/jobs", label: "Sync jobs", state: "preview" },
+      { href: "/system-health", label: "System health", state: "active" },
       { href: "/settings/graph", label: "Graph connection", state: "preview" },
       { href: "/delegation", label: "Delegation / RBAC", state: "soon" },
-      { href: "/settings", label: "Settings", state: "soon" },
+      { href: "/settings", label: "Settings", state: "preview" },
     ],
   },
 ];

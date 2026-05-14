@@ -100,6 +100,66 @@ export default async function SettingsIndex({
               </CardContent>
             </Card>
           </a>
+
+          <a href={`/settings/general${q}`} className="block">
+            <Card className="h-full hover:border-brand-700">
+              <CardHeader>
+                <CardTitle>General site settings</CardTitle>
+                <CardDescription>
+                  Platform name, organisation, default timezone, theme, session
+                  timeout, support contact.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Badge variant="muted">framework</Badge>
+              </CardContent>
+            </Card>
+          </a>
+
+          <a href={`/settings/security${q}`} className="block">
+            <Card className="h-full hover:border-brand-700">
+              <CardHeader>
+                <CardTitle>Security policy</CardTitle>
+                <CardDescription>
+                  Session timeout, IP allowlist, require Entra SSO, sensitive
+                  export reason, dry-run remediation default.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Badge variant="muted">framework</Badge>
+              </CardContent>
+            </Card>
+          </a>
+
+          <a href={`/settings/retention${q}`} className="block">
+            <Card className="h-full hover:border-brand-700">
+              <CardHeader>
+                <CardTitle>Data retention</CardTitle>
+                <CardDescription>
+                  Audit, export, job-log, alert and search-result retention
+                  windows.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Badge variant="muted">framework</Badge>
+              </CardContent>
+            </Card>
+          </a>
+
+          <a href={`/settings/notifications${q}`} className="block">
+            <Card className="h-full hover:border-brand-700">
+              <CardHeader>
+                <CardTitle>Notifications</CardTitle>
+                <CardDescription>
+                  SMTP placeholder, email recipients, alert severity routing,
+                  Teams + generic webhook placeholders.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Badge variant="muted">framework</Badge>
+              </CardContent>
+            </Card>
+          </a>
         </div>
       </main>
     </AppShell>

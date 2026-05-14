@@ -121,6 +121,7 @@ export function TotpEnroll({ userId, demo }: { userId: string; demo: boolean }) 
         </p>
         {qr ? (
           <div className="mt-3 inline-block rounded-md border border-slate-800 bg-white p-3">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={`data:image/svg+xml;base64,${qr}`}
               alt="TOTP QR code"

@@ -482,6 +482,54 @@ export const DEMO_RBAC_USERS = [
 
 export const DEMO_TENANT_ID = "11111111-1111-1111-1111-111111111111";
 
+export type DemoEntraUser = {
+  id: string;
+  user_principal_name: string;
+  display_name: string;
+  mail: string | null;
+  user_type: "Member" | "Guest";
+  account_enabled: boolean;
+  job_title: string | null;
+  department: string | null;
+  office_location: string | null;
+  last_signin_at: string | null;
+};
+
+export const DEMO_ENTRA_USERS: DemoEntraUser[] = [
+  { id: "u-001", user_principal_name: "alice.admin@dev.local", display_name: "Alice Admin", mail: "alice.admin@dev.local", user_type: "Member", account_enabled: true, job_title: "Platform Admin", department: "IT", office_location: "HQ", last_signin_at: "2026-05-13T07:51:00Z" },
+  { id: "u-002", user_principal_name: "bob.analyst@dev.local", display_name: "Bob Analyst", mail: "bob.analyst@dev.local", user_type: "Member", account_enabled: true, job_title: "Security Analyst", department: "Security", office_location: "HQ", last_signin_at: "2026-05-13T08:12:00Z" },
+  { id: "u-003", user_principal_name: "charlie.contractor#EXT#@dev.onmicrosoft.com", display_name: "Charlie Contractor", mail: "charlie@partner.example", user_type: "Guest", account_enabled: true, job_title: "Contractor", department: null, office_location: null, last_signin_at: "2026-04-01T14:00:00Z" },
+  { id: "u-004", user_principal_name: "dana.disabled@dev.local", display_name: "Dana Disabled", mail: "dana.disabled@dev.local", user_type: "Member", account_enabled: false, job_title: "Sales", department: "Sales", office_location: "Branch-2", last_signin_at: "2025-12-09T10:00:00Z" },
+  { id: "u-005", user_principal_name: "erin.engineer@dev.local", display_name: "Erin Engineer", mail: "erin.engineer@dev.local", user_type: "Member", account_enabled: true, job_title: "Engineer", department: "Engineering", office_location: "HQ", last_signin_at: "2026-05-12T22:18:00Z" },
+  { id: "u-006", user_principal_name: "frank.finance@dev.local", display_name: "Frank Finance", mail: "frank.finance@dev.local", user_type: "Member", account_enabled: true, job_title: "Controller", department: "Finance", office_location: "HQ", last_signin_at: "2026-05-13T09:01:00Z" },
+  { id: "u-007", user_principal_name: "grace.guest#EXT#@dev.onmicrosoft.com", display_name: "Grace Guest", mail: "grace@vendor.example", user_type: "Guest", account_enabled: true, job_title: "Vendor PM", department: null, office_location: null, last_signin_at: "2026-02-15T11:30:00Z" },
+  { id: "u-008", user_principal_name: "henry.hr@dev.local", display_name: "Henry HR", mail: "henry.hr@dev.local", user_type: "Member", account_enabled: true, job_title: "HR Lead", department: "HR", office_location: "HQ", last_signin_at: "2026-05-13T07:00:00Z" },
+  { id: "u-009", user_principal_name: "ivy.intern@dev.local", display_name: "Ivy Intern", mail: "ivy.intern@dev.local", user_type: "Member", account_enabled: true, job_title: "Intern", department: "Engineering", office_location: "HQ", last_signin_at: "2026-05-10T13:45:00Z" },
+  { id: "u-010", user_principal_name: "john.jansen@dev.local", display_name: "John Jansen", mail: "john.jansen@dev.local", user_type: "Member", account_enabled: true, job_title: "CFO", department: "Finance", office_location: "HQ", last_signin_at: "2026-05-13T08:55:00Z" },
+];
+
+export type DemoSpPermission = {
+  id: string;
+  site_url: string;
+  resource: string;
+  principal_display: string;
+  principal_type: "User" | "Group" | "External" | "Anonymous";
+  role: string;
+  inheritance: "inherited" | "unique";
+  granted_at: string;
+};
+
+export const DEMO_SP_PERMISSIONS: DemoSpPermission[] = [
+  { id: "p-001", site_url: "/sites/finance", resource: "/sites/finance/Shared Documents/2026-Budget.xlsx", principal_display: "Frank Finance", principal_type: "User", role: "Owner", inheritance: "unique", granted_at: "2026-01-08T10:00:00Z" },
+  { id: "p-002", site_url: "/sites/finance", resource: "/sites/finance/Shared Documents", principal_display: "Finance team", principal_type: "Group", role: "Member", inheritance: "inherited", granted_at: "2025-09-04T09:00:00Z" },
+  { id: "p-003", site_url: "/sites/marketing", resource: "/sites/marketing/Public", principal_display: "Everyone", principal_type: "Anonymous", role: "Viewer", inheritance: "unique", granted_at: "2025-11-22T17:21:00Z" },
+  { id: "p-004", site_url: "/sites/engineering", resource: "/sites/engineering/Shared Documents/Roadmap.pptx", principal_display: "grace@vendor.example", principal_type: "External", role: "Editor", inheritance: "unique", granted_at: "2026-03-02T12:00:00Z" },
+  { id: "p-005", site_url: "/sites/hr", resource: "/sites/hr/Shared Documents", principal_display: "HR team", principal_type: "Group", role: "Owner", inheritance: "inherited", granted_at: "2024-06-10T08:00:00Z" },
+  { id: "p-006", site_url: "/sites/legal", resource: "/sites/legal/Contracts", principal_display: "Legal team", principal_type: "Group", role: "Owner", inheritance: "inherited", granted_at: "2024-04-12T08:00:00Z" },
+  { id: "p-007", site_url: "/sites/sales", resource: "/sites/sales/Forecast", principal_display: "charlie@partner.example", principal_type: "External", role: "Viewer", inheritance: "unique", granted_at: "2026-03-15T11:00:00Z" },
+  { id: "p-008", site_url: "/sites/it", resource: "/sites/it/Runbooks", principal_display: "Engineering team", principal_type: "Group", role: "Member", inheritance: "inherited", granted_at: "2025-07-19T10:30:00Z" },
+];
+
 export const DEMO_GRAPH_SETTINGS = {
   tenant_id: DEMO_TENANT_ID,
   entra_tenant_id: "00000000-aaaa-bbbb-cccc-000000000000",
