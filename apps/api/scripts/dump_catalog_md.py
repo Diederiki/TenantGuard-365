@@ -64,7 +64,8 @@ def main() -> None:
     # Full matrix
     out.append("\n## Full matrix\n")
     out.append(
-        "| Key | Area / Feature | Status | Priority | Source | Endpoint | App scopes | License | Risk | UI | Approval | Dry-run |"
+        "| Key | Area / Feature | Status | Priority | Source | Endpoint "
+        "| App scopes | License | Risk | UI | Approval | Dry-run |"
     )
     out.append("|---|---|---|---|---|---|---|---|---|---|---|---|")
     for f in FEATURES:
