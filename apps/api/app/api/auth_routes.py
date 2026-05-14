@@ -42,11 +42,12 @@ def _fail_key(user_id: str) -> str:
 
 
 def _redis() -> redis.Redis:
-    return redis.from_url(  # type: ignore[no-untyped-call]
+    client: redis.Redis = redis.from_url(  # type: ignore[no-untyped-call]
         get_settings().redis_url,
         socket_timeout=1.0,
         socket_connect_timeout=1.0,
     )
+    return client
 
 
 def _is_locked(user_id: str) -> bool:
@@ -63,7 +64,7 @@ def _record_failure(user_id: str) -> int:
     """
     try:
         r = _redis()
-        count = int(r.incr(_fail_key(user_id)) or 0)
+        count = int(r.incr(_fail_key(user_id)) or 0)  # type: ignore[arg-type]
         if count == 1:
             r.expire(_fail_key(user_id), LOCKOUT_SECONDS)
         if count >= LOCKOUT_THRESHOLD:
