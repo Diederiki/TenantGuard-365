@@ -3,19 +3,19 @@
 # Multi-stage: deps → builder → runner. Standalone output, non-root.
 # =============================================================================
 
-FROM node:20-alpine AS deps
+FROM node:26-alpine AS deps
 WORKDIR /app
 COPY package.json ./
 RUN npm install --no-audit --no-fund --loglevel=error
 
-FROM node:20-alpine AS builder
+FROM node:26-alpine AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
 RUN npm run build
 
-FROM node:20-alpine AS dev
+FROM node:26-alpine AS dev
 WORKDIR /app
 ENV NODE_ENV=development \
     NEXT_TELEMETRY_DISABLED=1
@@ -24,7 +24,7 @@ COPY . .
 EXPOSE 3000
 CMD ["npm", "run", "dev"]
 
-FROM node:20-alpine AS prod
+FROM node:26-alpine AS prod
 WORKDIR /app
 ENV NODE_ENV=production \
     NEXT_TELEMETRY_DISABLED=1 \
