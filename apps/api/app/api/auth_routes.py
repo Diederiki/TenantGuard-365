@@ -78,7 +78,7 @@ def _clear_failures(user_id: str) -> None:
     try:
         r = _redis()
         r.delete(_fail_key(user_id), _lockout_key(user_id))
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         logger.warning("auth.lockout.clear_failed", extra={"err": str(exc)})
 
 
