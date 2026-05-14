@@ -11,7 +11,7 @@ from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from fastapi import APIRouter, Depends
-from sqlalchemy import func, select
+from sqlalchemy import case, func, select
 from sqlalchemy.orm import Session
 
 from app.auth.dependencies import AuthedUser, current_user
@@ -65,7 +65,7 @@ def dashboard(
                 func.date_trunc("day", TechnicianAuditLog.event_time).label("d"),
                 func.count().label("n"),
                 func.sum(
-                    func.case((TechnicianAuditLog.result != "success", 1), else_=0)
+                    case((TechnicianAuditLog.result != "success", 1), else_=0)
                 ).label("f"),
             )
             .where(TechnicianAuditLog.event_time >= since)
