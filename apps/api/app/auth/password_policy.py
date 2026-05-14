@@ -55,7 +55,11 @@ async def _hibp_breach_count(plaintext: str) -> int:
     corpus. 0 = clean. Raises only on programming errors; network errors
     return -1 so callers can treat it as "unknown" rather than blocking.
     """
-    digest = hashlib.sha1(plaintext.encode("utf-8")).hexdigest().upper()
+    # HIBP requires SHA-1 specifically — the API is keyed on the first 5
+    # hex chars of the SHA-1 digest. Not a security primitive here.
+    digest = hashlib.sha1(  # noqa: S324
+        plaintext.encode("utf-8"), usedforsecurity=False
+    ).hexdigest().upper()
     prefix, suffix = digest[:5], digest[5:]
     try:
         async with httpx.AsyncClient(timeout=HIBP_TIMEOUT) as client:
