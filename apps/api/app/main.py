@@ -18,6 +18,7 @@ from app.api.investigations_routes import router as investigations_router
 from app.api.me_routes import router as me_router
 from app.api.modules_routes import router as modules_router
 from app.api.rbac_routes import router as rbac_router
+from app.api.reporting_routes import router as reporting_router
 from app.api.reports_routes import router as reports_router
 from app.api.security_alerts_ops import router as security_alerts_ops_router
 from app.api.security_routes import router as security_router
@@ -115,6 +116,7 @@ def create_app() -> FastAPI:
     app.include_router(settings_router)
     app.include_router(system_router)
     app.include_router(catalog_router)
+    app.include_router(reporting_router)
 
     @app.get("/", tags=["meta"], summary="API root")
     def root() -> dict[str, str]:

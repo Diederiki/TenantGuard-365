@@ -22,6 +22,7 @@ const groups: { title: string; items: Item[] }[] = [
   {
     title: "Reports",
     items: [
+      { href: "/reporting", label: "Reporting overview", state: "active", permission: "reports.read" },
       { href: "/reports", label: "All reports", state: "preview", permission: "reports.read" },
       { href: "/reports/builder", label: "  ↳ Builder", state: "soon", permission: "reports.create" },
       { href: "/reports/scheduled", label: "  ↳ Scheduled", state: "soon", permission: "reports.schedule" },

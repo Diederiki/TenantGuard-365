@@ -482,6 +482,92 @@ export const DEMO_RBAC_USERS = [
 
 export const DEMO_TENANT_ID = "11111111-1111-1111-1111-111111111111";
 
+// -------- Reporting dashboard fixtures --------
+
+export type ReportingKpis = {
+  total_users: number;
+  active_users_30d: number;
+  guest_users: number;
+  privileged_admins: number;
+  licenses_purchased: number;
+  licenses_consumed: number;
+  sites: number;
+  external_users: number;
+  anonymous_links: number;
+  external_forwarding_rules: number;
+  alerts_open: number;
+  alerts_critical: number;
+  mfa_registered_pct: number;
+  inactive_mailboxes: number;
+};
+
+export const DEMO_REPORTING_KPIS: ReportingKpis = {
+  total_users: 410,
+  active_users_30d: 364,
+  guest_users: 38,
+  privileged_admins: 4,
+  licenses_purchased: 385,
+  licenses_consumed: 318,
+  sites: 86,
+  external_users: 22,
+  anonymous_links: 7,
+  external_forwarding_rules: 3,
+  alerts_open: 12,
+  alerts_critical: 2,
+  mfa_registered_pct: 92,
+  inactive_mailboxes: 9,
+};
+
+export const DEMO_AUDIT_TREND: { day: string; events: number; failures: number }[] = [
+  { day: "May 7", events: 3120, failures: 14 },
+  { day: "May 8", events: 2980, failures: 9 },
+  { day: "May 9", events: 3410, failures: 22 },
+  { day: "May 10", events: 1255, failures: 4 },
+  { day: "May 11", events: 988, failures: 2 },
+  { day: "May 12", events: 3680, failures: 18 },
+  { day: "May 13", events: 4012, failures: 11 },
+];
+
+export const DEMO_SIGNIN_RISK: { day: string; low: number; medium: number; high: number }[] = [
+  { day: "May 7", low: 412, medium: 8, high: 1 },
+  { day: "May 8", low: 388, medium: 5, high: 0 },
+  { day: "May 9", low: 421, medium: 11, high: 2 },
+  { day: "May 10", low: 162, medium: 2, high: 0 },
+  { day: "May 11", low: 129, medium: 1, high: 0 },
+  { day: "May 12", low: 444, medium: 9, high: 1 },
+  { day: "May 13", low: 461, medium: 14, high: 3 },
+];
+
+export const DEMO_LICENSE_USE: { sku: string; used: number; bought: number }[] = [
+  { sku: "M365 E5", used: 47, bought: 50 },
+  { sku: "M365 E3", used: 188, bought: 200 },
+  { sku: "Defender for O365 P2", used: 47, bought: 50 },
+  { sku: "Purview IRM", used: 4, bought: 25 },
+  { sku: "Power BI Pro", used: 33, bought: 60 },
+];
+
+export const DEMO_ALERT_SEVERITY: { sev: string; open: number; closed: number }[] = [
+  { sev: "critical", open: 2, closed: 11 },
+  { sev: "high", open: 4, closed: 28 },
+  { sev: "medium", open: 5, closed: 51 },
+  { sev: "low", open: 1, closed: 122 },
+];
+
+export const DEMO_SHARING_RISK: { name: string; value: number }[] = [
+  { name: "Anonymous", value: 7 },
+  { name: "External", value: 22 },
+  { name: "Org-wide", value: 41 },
+  { name: "Specific people", value: 308 },
+];
+
+export const DEMO_TOP_SITES: { site: string; storage_gb: number; ext_users: number; links: number }[] = [
+  { site: "/sites/engineering", storage_gb: 412, ext_users: 4, links: 18 },
+  { site: "/sites/finance", storage_gb: 182, ext_users: 1, links: 6 },
+  { site: "/sites/legal", storage_gb: 121, ext_users: 0, links: 2 },
+  { site: "/sites/marketing", storage_gb: 94, ext_users: 7, links: 22 },
+  { site: "/sites/hr", storage_gb: 71, ext_users: 0, links: 1 },
+];
+
 export type DemoEntraUser = {
   id: string;
   user_principal_name: string;
