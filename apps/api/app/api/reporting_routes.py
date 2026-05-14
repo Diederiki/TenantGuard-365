@@ -7,7 +7,6 @@ raising — the page should always render.
 
 from __future__ import annotations
 
-from collections import defaultdict
 from datetime import UTC, datetime, timedelta
 from typing import Any
 

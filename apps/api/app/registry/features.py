@@ -107,12 +107,13 @@ class FeatureEntry:
 # ---------------------------------------------------------------- entries
 
 # Helper to keep declarations terse.
-def _F(**kw: object) -> FeatureEntry:  # noqa: N802 — tiny shorthand
+def _f(**kw: object) -> FeatureEntry:
+    """Compact constructor — keep entry declarations terse."""
     return FeatureEntry(**kw)  # type: ignore[arg-type]
 
 
 _PLATFORM: list[FeatureEntry] = [
-    _F(
+    _f(
         key="platform.dashboard.overview",
         area="Platform",
         name="Central overview dashboard",
@@ -126,7 +127,7 @@ _PLATFORM: list[FeatureEntry] = [
         export_formats=(),
         risk="low",
     ),
-    _F(
+    _f(
         key="platform.dashboard.widgets",
         area="Platform",
         name="Add reports as dashboard widgets",
@@ -137,7 +138,7 @@ _PLATFORM: list[FeatureEntry] = [
         ui_page="/",
         next_action="Add `dashboard_widgets` table + reorderable widget host.",
     ),
-    _F(
+    _f(
         key="platform.audit.technician",
         area="Platform",
         name="Technician audit trail",
@@ -154,7 +155,7 @@ _PLATFORM: list[FeatureEntry] = [
         audited=True,
         next_action="Add Postgres RLS append-only role (P29 OPEN).",
     ),
-    _F(
+    _f(
         key="platform.rbac.builtin",
         area="Platform",
         name="Built-in roles",
@@ -167,7 +168,7 @@ _PLATFORM: list[FeatureEntry] = [
         database_tables=("platform_roles", "platform_permissions"),
         real_api="yes",
     ),
-    _F(
+    _f(
         key="platform.rbac.custom",
         area="Platform",
         name="Custom roles + permission matrix UI",
@@ -178,7 +179,7 @@ _PLATFORM: list[FeatureEntry] = [
         ui_page="/delegation",
         next_action="Add CRUD UI for role-permission editing; backend already supports it.",
     ),
-    _F(
+    _f(
         key="platform.delegation.scoped",
         area="Platform",
         name="Domain / attribute / virtual-tenant delegation",
@@ -188,7 +189,7 @@ _PLATFORM: list[FeatureEntry] = [
         priority="Phase 2",
         next_action="Wire scope_meta enforcement into permission dependencies.",
     ),
-    _F(
+    _f(
         key="platform.health.system",
         area="Platform",
         name="System health page",
@@ -201,7 +202,7 @@ _PLATFORM: list[FeatureEntry] = [
         real_api="yes",
         alertable=True,
     ),
-    _F(
+    _f(
         key="platform.notifications.framework",
         area="Platform",
         name="Notification routing",
@@ -213,7 +214,7 @@ _PLATFORM: list[FeatureEntry] = [
         gaps="Send pipeline + notification_events table not yet implemented.",
         next_action="Implement SMTP send + webhook dispatch + history table.",
     ),
-    _F(
+    _f(
         key="platform.retention.policy",
         area="Platform",
         name="Data retention policy",
@@ -224,7 +225,7 @@ _PLATFORM: list[FeatureEntry] = [
         ui_page="/settings/retention",
         next_action="Add `retention_policy` row + scheduled cleanup tasks.",
     ),
-    _F(
+    _f(
         key="platform.export.framework",
         area="Platform",
         name="Export framework (CSV/XLSX/PDF/HTML)",
@@ -240,7 +241,7 @@ _PLATFORM: list[FeatureEntry] = [
         risk="medium",
         audited=True,
     ),
-    _F(
+    _f(
         key="platform.scheduled.reports",
         area="Platform",
         name="Scheduled reports + email delivery",
@@ -258,7 +259,7 @@ _PLATFORM: list[FeatureEntry] = [
 
 # ---------------- Entra ID reports + auditing
 _ENTRA: list[FeatureEntry] = [
-    _F(
+    _f(
         key="entra.users.all",
         area="Entra ID — Users",
         name="All users report",
@@ -275,7 +276,7 @@ _ENTRA: list[FeatureEntry] = [
         export_formats=("CSV", "XLSX"),
         schedulable=True,
     ),
-    _F(
+    _f(
         key="entra.users.guests",
         area="Entra ID — Users",
         name="Guest users report",
@@ -289,7 +290,7 @@ _ENTRA: list[FeatureEntry] = [
         ui_page="/entra/users",
         real_api="yes",
     ),
-    _F(
+    _f(
         key="entra.users.inactive",
         area="Entra ID — Users",
         name="Inactive users",
@@ -302,7 +303,7 @@ _ENTRA: list[FeatureEntry] = [
         application_scopes=("AuditLog.Read.All",),
         license_dep="Entra ID P1",
     ),
-    _F(
+    _f(
         key="entra.users.deleted",
         area="Entra ID — Users",
         name="Deleted users",
@@ -314,7 +315,7 @@ _ENTRA: list[FeatureEntry] = [
         endpoint="/directory/deletedItems/microsoft.graph.user",
         application_scopes=("User.Read.All",),
     ),
-    _F(
+    _f(
         key="entra.groups.inventory",
         area="Entra ID — Groups",
         name="Group inventory",
@@ -327,7 +328,7 @@ _ENTRA: list[FeatureEntry] = [
         application_scopes=("Group.Read.All",),
         ui_page="/entra/groups",
     ),
-    _F(
+    _f(
         key="entra.groups.empty",
         area="Entra ID — Groups",
         name="Empty groups",
@@ -339,7 +340,7 @@ _ENTRA: list[FeatureEntry] = [
         endpoint="/groups + /groups/{id}/members/$count",
         application_scopes=("Group.Read.All",),
     ),
-    _F(
+    _f(
         key="entra.roles.assignments",
         area="Entra ID — Roles",
         name="Directory role assignments",
@@ -352,7 +353,7 @@ _ENTRA: list[FeatureEntry] = [
         application_scopes=("RoleManagement.Read.Directory",),
         ui_page="/entra/roles",
     ),
-    _F(
+    _f(
         key="entra.licenses.usage",
         area="Entra ID — Licenses",
         name="License usage",
@@ -365,7 +366,7 @@ _ENTRA: list[FeatureEntry] = [
         application_scopes=("Organization.Read.All",),
         ui_page="/entra/licenses",
     ),
-    _F(
+    _f(
         key="entra.signins.recent",
         area="Entra ID — Sign-ins",
         name="Recent sign-ins + risk",
@@ -380,7 +381,7 @@ _ENTRA: list[FeatureEntry] = [
         ui_page="/entra/signins",
         alertable=True,
     ),
-    _F(
+    _f(
         key="entra.audit.directory",
         area="Entra ID — Audit",
         name="Directory audit",
@@ -393,7 +394,7 @@ _ENTRA: list[FeatureEntry] = [
         application_scopes=("AuditLog.Read.All",),
         ui_page="/entra/audit",
     ),
-    _F(
+    _f(
         key="entra.users.mfa",
         area="Entra ID — Security",
         name="MFA / authentication method registration",
@@ -405,7 +406,7 @@ _ENTRA: list[FeatureEntry] = [
         endpoint="/reports/authenticationMethods/userRegistrationDetails",
         application_scopes=("AuditLog.Read.All", "UserAuthenticationMethod.Read.All"),
     ),
-    _F(
+    _f(
         key="entra.password.status",
         area="Entra ID — Security",
         name="Password expiry status",
@@ -422,7 +423,7 @@ _ENTRA: list[FeatureEntry] = [
 
 # ---------------- Exchange Online
 _EXCHANGE: list[FeatureEntry] = [
-    _F(
+    _f(
         key="exchange.mailboxes.inventory",
         area="Exchange — Mailboxes",
         name="Mailbox inventory",
@@ -436,7 +437,7 @@ _EXCHANGE: list[FeatureEntry] = [
         ui_page="/exchange/mailboxes",
         export_formats=("CSV", "XLSX"),
     ),
-    _F(
+    _f(
         key="exchange.mailboxes.size_quota",
         area="Exchange — Mailboxes",
         name="Mailbox size vs quota",
@@ -448,7 +449,7 @@ _EXCHANGE: list[FeatureEntry] = [
         endpoint="/reports/getMailboxUsageQuotaStatusMailboxCounts",
         application_scopes=("Reports.Read.All",),
     ),
-    _F(
+    _f(
         key="exchange.mailboxes.inactive",
         area="Exchange — Mailboxes",
         name="Inactive mailboxes consuming licenses",
@@ -460,7 +461,7 @@ _EXCHANGE: list[FeatureEntry] = [
         endpoint="/reports/getOffice365ActiveUserDetail",
         application_scopes=("Reports.Read.All",),
     ),
-    _F(
+    _f(
         key="exchange.mail.traffic",
         area="Exchange — Mail traffic",
         name="Mail traffic + top senders/recipients",
@@ -472,7 +473,7 @@ _EXCHANGE: list[FeatureEntry] = [
         endpoint="/reports/getEmailActivityCounts + getMailboxUsageDetail",
         application_scopes=("Reports.Read.All",),
     ),
-    _F(
+    _f(
         key="exchange.mail.spam_malware",
         area="Exchange — Threat",
         name="Spam / malware detection",
@@ -485,7 +486,7 @@ _EXCHANGE: list[FeatureEntry] = [
         application_scopes=("ThreatSubmission.Read.All",),
         license_dep="Defender for Office 365",
     ),
-    _F(
+    _f(
         key="exchange.permissions.full_access",
         area="Exchange — Permissions",
         name="Mailbox FullAccess / SendAs / SendOnBehalfOf",
@@ -499,7 +500,7 @@ _EXCHANGE: list[FeatureEntry] = [
         ui_page="/exchange/permissions",
         risk="high",
     ),
-    _F(
+    _f(
         key="exchange.forwarding.external",
         area="Exchange — Risk",
         name="External forwarding rules",
@@ -514,7 +515,7 @@ _EXCHANGE: list[FeatureEntry] = [
         risk="critical",
         alertable=True,
     ),
-    _F(
+    _f(
         key="exchange.mobile.devices",
         area="Exchange — Mobile",
         name="Mobile / ActiveSync device inventory",
@@ -526,7 +527,7 @@ _EXCHANGE: list[FeatureEntry] = [
         endpoint="Get-MobileDevice",
         other_role="Exchange Administrator",
     ),
-    _F(
+    _f(
         key="exchange.litigation_hold",
         area="Exchange — Compliance",
         name="Litigation + in-place hold reports",
@@ -539,7 +540,7 @@ _EXCHANGE: list[FeatureEntry] = [
         other_role="Exchange Administrator",
         license_dep="Exchange Plan 2 / E5",
     ),
-    _F(
+    _f(
         key="exchange.owa.policies",
         area="Exchange — OWA",
         name="OWA mailbox policies + logon",
@@ -550,7 +551,7 @@ _EXCHANGE: list[FeatureEntry] = [
         source="Exchange Online PowerShell",
         endpoint="Get-OwaMailboxPolicy",
     ),
-    _F(
+    _f(
         key="exchange.public_folders",
         area="Exchange — Public folders",
         name="Public folder reports",
@@ -562,7 +563,7 @@ _EXCHANGE: list[FeatureEntry] = [
         endpoint="Get-PublicFolder / Get-MailPublicFolder",
     ),
     # auditing
-    _F(
+    _f(
         key="exchange.audit.owner",
         area="Exchange — Audit",
         name="Mailbox owner / non-owner / delegate access",
@@ -574,7 +575,7 @@ _EXCHANGE: list[FeatureEntry] = [
         endpoint="/auditLogs/directoryAudits + /security/auditLog/queries",
         application_scopes=("AuditLog.Read.All",),
     ),
-    _F(
+    _f(
         key="exchange.audit.admin",
         area="Exchange — Audit",
         name="Exchange admin activities",
@@ -591,7 +592,7 @@ _EXCHANGE: list[FeatureEntry] = [
 
 # ---------------- OneDrive
 _ONEDRIVE: list[FeatureEntry] = [
-    _F(
+    _f(
         key="onedrive.accounts",
         area="OneDrive — Inventory",
         name="OneDrive accounts",
@@ -604,7 +605,7 @@ _ONEDRIVE: list[FeatureEntry] = [
         application_scopes=("Reports.Read.All",),
         ui_page="/onedrive/accounts",
     ),
-    _F(
+    _f(
         key="onedrive.sharing",
         area="OneDrive — Sharing",
         name="OneDrive sharing audit",
@@ -618,7 +619,7 @@ _ONEDRIVE: list[FeatureEntry] = [
         ui_page="/onedrive/sharing",
         risk="high",
     ),
-    _F(
+    _f(
         key="onedrive.audit.files",
         area="OneDrive — Audit",
         name="File create / modify / delete / move / rename / restore",
@@ -630,7 +631,7 @@ _ONEDRIVE: list[FeatureEntry] = [
         endpoint="/security/auditLog/queries",
         application_scopes=("AuditLog.Read.All",),
     ),
-    _F(
+    _f(
         key="onedrive.audit.sync",
         area="OneDrive — Audit",
         name="Sync device events",
@@ -647,7 +648,7 @@ _ONEDRIVE: list[FeatureEntry] = [
 
 # ---------------- SharePoint Online
 _SHAREPOINT: list[FeatureEntry] = [
-    _F(
+    _f(
         key="sharepoint.sites.inventory",
         area="SharePoint — Sites",
         name="Site inventory",
@@ -660,7 +661,7 @@ _SHAREPOINT: list[FeatureEntry] = [
         application_scopes=("Sites.Read.All", "Reports.Read.All"),
         ui_page="/sharepoint/sites",
     ),
-    _F(
+    _f(
         key="sharepoint.sites.external_sharing",
         area="SharePoint — Sharing",
         name="External-sharing-enabled sites",
@@ -673,7 +674,7 @@ _SHAREPOINT: list[FeatureEntry] = [
         application_scopes=("Sites.FullControl.All",),
         risk="high",
     ),
-    _F(
+    _f(
         key="sharepoint.permissions.matrix",
         area="SharePoint — Permissions",
         name="Permission matrix (effective)",
@@ -682,12 +683,15 @@ _SHAREPOINT: list[FeatureEntry] = [
         status="implemented_mock_only",
         priority="MVP",
         source="Graph v1.0",
-        endpoint="/sites/{id}/permissions + lists/{id}/items?$expand=fields,hasUniqueRoleAssignments",
+        endpoint=(
+            "/sites/{id}/permissions + lists/{id}/items"
+            "?$expand=fields,hasUniqueRoleAssignments"
+        ),
         application_scopes=("Sites.FullControl.All",),
         ui_page="/sharepoint/permissions",
         risk="high",
     ),
-    _F(
+    _f(
         key="sharepoint.sharing.links",
         area="SharePoint — Sharing",
         name="Sharing links",
@@ -701,7 +705,7 @@ _SHAREPOINT: list[FeatureEntry] = [
         ui_page="/sharepoint/sharing-links",
         risk="critical",
     ),
-    _F(
+    _f(
         key="sharepoint.external.users",
         area="SharePoint — Sharing",
         name="External users + last access",
@@ -715,7 +719,7 @@ _SHAREPOINT: list[FeatureEntry] = [
         ui_page="/sharepoint/external-users",
         risk="high",
     ),
-    _F(
+    _f(
         key="sharepoint.broken_inheritance",
         area="SharePoint — Permissions",
         name="Broken-inheritance items",
@@ -728,7 +732,7 @@ _SHAREPOINT: list[FeatureEntry] = [
         application_scopes=("Sites.FullControl.All",),
         ui_page="/sharepoint/broken-inheritance",
     ),
-    _F(
+    _f(
         key="sharepoint.audit.file_ops",
         area="SharePoint — Audit",
         name="File access / modify / delete / move / rename / restore",
@@ -740,7 +744,7 @@ _SHAREPOINT: list[FeatureEntry] = [
         endpoint="/security/auditLog/queries",
         application_scopes=("AuditLog.Read.All",),
     ),
-    _F(
+    _f(
         key="sharepoint.audit.sharing_ops",
         area="SharePoint — Audit",
         name="Sharing invitation / link create / accept / revoke",
@@ -752,7 +756,7 @@ _SHAREPOINT: list[FeatureEntry] = [
         endpoint="/security/auditLog/queries",
         application_scopes=("AuditLog.Read.All",),
     ),
-    _F(
+    _f(
         key="sharepoint.mgmt.permissions",
         area="SharePoint — Management",
         name="Add / remove / modify site permissions (dry-run)",
@@ -767,7 +771,7 @@ _SHAREPOINT: list[FeatureEntry] = [
         requires_approval=True,
         requires_dry_run=True,
     ),
-    _F(
+    _f(
         key="sharepoint.mgmt.groups",
         area="SharePoint — Management",
         name="Manage site groups (create / delete / membership)",
@@ -786,7 +790,7 @@ _SHAREPOINT: list[FeatureEntry] = [
 
 # ---------------- Teams
 _TEAMS: list[FeatureEntry] = [
-    _F(
+    _f(
         key="teams.inventory",
         area="Teams — Inventory",
         name="Team + channel inventory",
@@ -799,7 +803,7 @@ _TEAMS: list[FeatureEntry] = [
         application_scopes=("Team.ReadBasic.All", "Channel.ReadBasic.All", "TeamMember.Read.All"),
         ui_page="/teams/inventory",
     ),
-    _F(
+    _f(
         key="teams.usage",
         area="Teams — Usage",
         name="Activity / device usage",
@@ -811,7 +815,7 @@ _TEAMS: list[FeatureEntry] = [
         endpoint="/reports/getTeamsUserActivityUserDetail",
         application_scopes=("Reports.Read.All",),
     ),
-    _F(
+    _f(
         key="teams.audit.lifecycle",
         area="Teams — Audit",
         name="Team / channel create / delete / setting change",
@@ -823,7 +827,7 @@ _TEAMS: list[FeatureEntry] = [
         endpoint="/security/auditLog/queries",
         application_scopes=("AuditLog.Read.All",),
     ),
-    _F(
+    _f(
         key="teams.mgmt.create_team",
         area="Teams — Management",
         name="Create / update / delete teams (dry-run)",
@@ -843,7 +847,7 @@ _TEAMS: list[FeatureEntry] = [
 
 # ---------------- Service health
 _SERVICE_HEALTH: list[FeatureEntry] = [
-    _F(
+    _f(
         key="service_health.overview",
         area="Service health",
         name="Service health overview + incidents",
@@ -862,7 +866,7 @@ _SERVICE_HEALTH: list[FeatureEntry] = [
 
 # ---------------- Security / compliance
 _SECURITY: list[FeatureEntry] = [
-    _F(
+    _f(
         key="security.alerts.list",
         area="Security — Alerts",
         name="Security alerts",
@@ -876,7 +880,7 @@ _SECURITY: list[FeatureEntry] = [
         ui_page="/security/alerts",
         alertable=True,
     ),
-    _F(
+    _f(
         key="security.rules.internal",
         area="Security — Rules",
         name="Internal rule engine",
@@ -887,7 +891,7 @@ _SECURITY: list[FeatureEntry] = [
         ui_page="/security/rules",
         backend_service="security.rules",
     ),
-    _F(
+    _f(
         key="security.investigations.cases",
         area="Security — Investigations",
         name="Investigation cases",
@@ -897,7 +901,7 @@ _SECURITY: list[FeatureEntry] = [
         priority="Phase 2",
         ui_page="/security/investigations",
     ),
-    _F(
+    _f(
         key="security.content_search.profiles",
         area="Security — Content search",
         name="Content search profiles + scheduled runs",
@@ -915,7 +919,7 @@ _SECURITY: list[FeatureEntry] = [
         requires_approval=True,
         audited=True,
     ),
-    _F(
+    _f(
         key="security.remediation.policies",
         area="Security — Remediation",
         name="Auto-remediation policies (dry-run)",
@@ -928,7 +932,7 @@ _SECURITY: list[FeatureEntry] = [
         requires_approval=True,
         requires_dry_run=True,
     ),
-    _F(
+    _f(
         key="security.dlp.alerts",
         area="Compliance — DLP",
         name="DLP alerts",
@@ -940,7 +944,7 @@ _SECURITY: list[FeatureEntry] = [
         endpoint="/security/dataLossPrevention",
         license_dep="Purview DLP",
     ),
-    _F(
+    _f(
         key="security.defender.hunting",
         area="Security — Defender",
         name="Defender advanced hunting",
@@ -957,7 +961,7 @@ _SECURITY: list[FeatureEntry] = [
 
 # ---------------- Power BI / Yammer
 _OTHER: list[FeatureEntry] = [
-    _F(
+    _f(
         key="powerbi.audit.dashboards",
         area="Power BI — Audit",
         name="Dashboard / report lifecycle audit",
@@ -970,7 +974,7 @@ _OTHER: list[FeatureEntry] = [
         application_scopes=("AuditLog.Read.All",),
         license_dep="Power BI Pro",
     ),
-    _F(
+    _f(
         key="yammer.usage",
         area="Viva Engage — Usage",
         name="Viva Engage usage + audit",
@@ -982,7 +986,7 @@ _OTHER: list[FeatureEntry] = [
         endpoint="/reports/getYammerActivityUserDetail (deprecated)",
         gaps="Microsoft is migrating Yammer audit to Viva Engage; APIs in flux.",
     ),
-    _F(
+    _f(
         key="powerbi.audit.subscriptions",
         area="Power BI — Audit",
         name="Trial subscriptions, content packs, admin portal",
@@ -999,7 +1003,7 @@ _OTHER: list[FeatureEntry] = [
 
 # ---------------- Management actions
 _MANAGEMENT: list[FeatureEntry] = [
-    _F(
+    _f(
         key="management.entra.password_reset",
         area="Management — Entra",
         name="Reset password (dry-run)",
@@ -1014,7 +1018,7 @@ _MANAGEMENT: list[FeatureEntry] = [
         requires_approval=True,
         requires_dry_run=True,
     ),
-    _F(
+    _f(
         key="management.entra.block_user",
         area="Management — Entra",
         name="Block / unblock user (dry-run)",
@@ -1029,7 +1033,7 @@ _MANAGEMENT: list[FeatureEntry] = [
         requires_approval=True,
         requires_dry_run=True,
     ),
-    _F(
+    _f(
         key="management.entra.licenses",
         area="Management — Entra",
         name="Assign / remove licenses (dry-run)",
@@ -1044,7 +1048,7 @@ _MANAGEMENT: list[FeatureEntry] = [
         requires_approval=True,
         requires_dry_run=True,
     ),
-    _F(
+    _f(
         key="management.exchange.mailbox_attrs",
         area="Management — Exchange",
         name="Modify mailbox attributes (dry-run)",
@@ -1059,7 +1063,7 @@ _MANAGEMENT: list[FeatureEntry] = [
         requires_approval=True,
         requires_dry_run=True,
     ),
-    _F(
+    _f(
         key="management.exchange.forwarding",
         area="Management — Exchange",
         name="Configure mail forwarding (dry-run)",
@@ -1073,7 +1077,7 @@ _MANAGEMENT: list[FeatureEntry] = [
         requires_approval=True,
         requires_dry_run=True,
     ),
-    _F(
+    _f(
         key="management.exchange.auto_reply",
         area="Management — Exchange",
         name="Configure internal / external auto-reply",
@@ -1088,7 +1092,7 @@ _MANAGEMENT: list[FeatureEntry] = [
         requires_approval=True,
         requires_dry_run=True,
     ),
-    _F(
+    _f(
         key="management.exchange.litigation_hold",
         area="Management — Exchange",
         name="Activate litigation hold",
