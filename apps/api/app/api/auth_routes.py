@@ -41,7 +41,7 @@ def _fail_key(user_id: str) -> str:
     return f"tg365:auth:fails:{user_id}"
 
 
-def _redis() -> "redis.Redis":
+def _redis() -> redis.Redis:
     return redis.from_url(  # type: ignore[no-untyped-call]
         get_settings().redis_url,
         socket_timeout=1.0,
@@ -78,8 +78,8 @@ def _clear_failures(user_id: str) -> None:
     try:
         r = _redis()
         r.delete(_fail_key(user_id), _lockout_key(user_id))
-    except Exception:
-        pass
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("auth.lockout.clear_failed", extra={"err": str(exc)})
 
 
 def _pending_serializer() -> URLSafeSerializer:
