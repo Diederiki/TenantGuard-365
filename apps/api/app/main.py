@@ -67,7 +67,7 @@ def create_app() -> FastAPI:
     # Brotli compression on responses ≥ 1 KB. Cuts ~70% off JSON report
     # payloads and CSV exports. Browsers + curl negotiate via Accept-Encoding.
     try:
-        from brotli_asgi import BrotliMiddleware  # type: ignore[import-untyped]
+        from brotli_asgi import BrotliMiddleware
 
         app.add_middleware(BrotliMiddleware, minimum_size=1024, gzip_fallback=True)
     except Exception as exc:

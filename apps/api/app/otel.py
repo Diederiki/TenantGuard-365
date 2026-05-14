@@ -69,7 +69,7 @@ def init_otel(app: object | None = None) -> bool:
         try:
             from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 
-            FastAPIInstrumentor.instrument_app(app)  # type: ignore[arg-type]
+            FastAPIInstrumentor.instrument_app(app)
         except Exception as exc:
             logger.warning("otel.fastapi_instrument_failed", extra={"err": str(exc)})
 
