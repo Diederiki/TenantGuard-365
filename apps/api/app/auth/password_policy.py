@@ -57,7 +57,7 @@ async def _hibp_breach_count(plaintext: str) -> int:
     """
     # HIBP requires SHA-1 specifically — the API is keyed on the first 5
     # hex chars of the SHA-1 digest. Not a security primitive here.
-    digest = hashlib.sha1(  # noqa: S324
+    digest = hashlib.sha1(
         plaintext.encode("utf-8"), usedforsecurity=False
     ).hexdigest().upper()
     prefix, suffix = digest[:5], digest[5:]
