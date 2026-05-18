@@ -1,7 +1,7 @@
-dramatiq[redis]==1.17.1
-APScheduler==3.10.4
-pydantic==2.10.3
-pydantic-settings==2.7.0
-redis==5.2.1
-python-json-logger==3.2.1
+dramatiq[redis]==1.18.0
+APScheduler==3.11.2
+pydantic==2.13.4
+pydantic-settings==2.14.1
+redis==5.3.1
+python-json-logger==3.3.0
 httpx==0.28.1
