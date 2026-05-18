@@ -1,57 +1,57 @@
 # Runtime dependencies for apps/api.
 # Pin everything for reproducible builds.
 
-fastapi==0.115.6
-uvicorn[standard]==0.32.1
-pydantic==2.10.3
-pydantic-settings==2.7.0
+fastapi==0.136.1
+uvicorn[standard]==0.47.0
+pydantic==2.13.4
+pydantic-settings==2.14.1
 
 # Database
-SQLAlchemy==2.0.36
-psycopg[binary,pool]==3.2.3
-alembic==1.14.0
+SQLAlchemy==2.0.49
+psycopg[binary,pool]==3.3.4
+alembic==1.18.4
 
 # Redis
-redis==5.2.1
+redis==5.3.1
 
 # OpenSearch
 opensearch-py==2.8.0
 
 # Object storage
-boto3==1.35.85
+boto3==1.43.9
 
 # HTTP client
 httpx==0.28.1
 
 # Logging
-python-json-logger==3.2.1
+python-json-logger==3.3.0
 
 # Crypto / tokens
-cryptography==44.0.0
-PyJWT[crypto]==2.10.1
+cryptography==44.0.3
+PyJWT[crypto]==2.12.1
 
 # Auth helpers
 itsdangerous==2.2.0
 
 # Email
-aiosmtplib==4.0.0
+aiosmtplib==4.0.2
 
 # Scheduling
-croniter==6.0.0
+croniter==6.2.2
 
 # Auth helpers
 pyotp==2.9.0
-qrcode==8.0
-bcrypt==4.2.1
+qrcode==8.2
+bcrypt==4.3.0
 
 # Compression
-brotli-asgi==1.4.0
+brotli-asgi==1.6.0
 
 # Observability — OpenTelemetry SDK + OTLP exporter + FastAPI/SQLA/HTTPX instrumentations
-opentelemetry-api==1.29.0
-opentelemetry-sdk==1.29.0
-opentelemetry-exporter-otlp-proto-http==1.29.0
-opentelemetry-instrumentation-fastapi==0.50b0
-opentelemetry-instrumentation-sqlalchemy==0.50b0
-opentelemetry-instrumentation-httpx==0.50b0
-opentelemetry-instrumentation-redis==0.50b0
+opentelemetry-api==1.41.1
+opentelemetry-sdk==1.41.1
+opentelemetry-exporter-otlp-proto-http==1.41.1
+opentelemetry-instrumentation-fastapi==0.62b1
+opentelemetry-instrumentation-sqlalchemy==0.62b1
+opentelemetry-instrumentation-httpx==0.62b1
+opentelemetry-instrumentation-redis==0.62b1
